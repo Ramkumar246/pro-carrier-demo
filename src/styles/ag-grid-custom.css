@@ -1,0 +1,91 @@
+/* Custom AG Grid Theme Overrides */
+
+.ag-theme-alpine {
+  --ag-background-color: hsl(var(--card));
+  --ag-foreground-color: hsl(var(--foreground));
+  --ag-header-background-color: hsl(var(--muted) / 0.5);
+  --ag-header-foreground-color: hsl(var(--foreground));
+  --ag-border-color: hsl(var(--border));
+  --ag-row-hover-color: hsl(var(--muted) / 0.3);
+  --ag-selected-row-background-color: hsl(var(--primary) / 0.1);
+  --ag-range-selection-background-color: hsl(var(--primary) / 0.2);
+  --ag-range-selection-border-color: hsl(var(--primary));
+  --ag-input-focus-border-color: hsl(var(--ring));
+  --ag-font-family: inherit;
+  --ag-font-size: 14px;
+}
+
+/* Dark mode support */
+.dark .ag-theme-alpine {
+  --ag-background-color: hsl(var(--card));
+  --ag-foreground-color: hsl(var(--foreground));
+  --ag-header-background-color: hsl(var(--muted) / 0.5);
+  --ag-odd-row-background-color: hsl(var(--card));
+  --ag-row-hover-color: hsl(var(--muted) / 0.3);
+  --ag-border-color: hsl(var(--border));
+}
+
+/* Custom header styles */
+.ag-theme-alpine .ag-header-cell-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Custom cell styles */
+.ag-theme-alpine .ag-cell {
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+}
+
+/* Checkbox styles */
+.ag-theme-alpine .ag-checkbox-input-wrapper {
+  border-radius: 4px;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper.ag-checked {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+/* Filter styles */
+.ag-theme-alpine .ag-filter-toolpanel-header,
+.ag-theme-alpine .ag-filter-toolpanel-search,
+.ag-theme-alpine .ag-filter {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+
+/* Pagination styles */
+.ag-theme-alpine .ag-paging-panel {
+  border-top: 1px solid hsl(var(--border));
+  background-color: hsl(var(--muted) / 0.3);
+  padding: 12px;
+}
+
+/* Scrollbar customization */
+.ag-theme-alpine .ag-body-horizontal-scroll,
+.ag-theme-alpine .ag-body-vertical-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+}
+
+.ag-theme-alpine ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ag-theme-alpine ::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+.ag-theme-alpine ::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+.ag-theme-alpine ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground));
+}
