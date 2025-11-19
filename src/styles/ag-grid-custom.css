@@ -1,6 +1,7 @@
-/* Custom AG Grid Theme Overrides */
+/* Custom AG Grid Quartz Theme Overrides */
+/* Using Theming API - these styles enhance the Quartz theme */
 
-.ag-theme-alpine {
+.ag-theme-quartz {
   --ag-background-color: hsl(var(--card));
   --ag-foreground-color: hsl(var(--foreground));
   --ag-header-background-color: hsl(var(--muted) / 0.5);
@@ -13,10 +14,18 @@
   --ag-input-focus-border-color: hsl(var(--ring));
   --ag-font-family: inherit;
   --ag-font-size: 14px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure grid container has proper dimensions */
+.ag-theme-quartz .ag-root-wrapper {
+  width: 100%;
+  height: 100%;
 }
 
 /* Dark mode support */
-.dark .ag-theme-alpine {
+.dark .ag-theme-quartz {
   --ag-background-color: hsl(var(--card));
   --ag-foreground-color: hsl(var(--foreground));
   --ag-header-background-color: hsl(var(--muted) / 0.5);
@@ -26,7 +35,7 @@
 }
 
 /* Custom header styles */
-.ag-theme-alpine .ag-header-cell-label {
+.ag-theme-quartz .ag-header-cell-label {
   font-weight: 600;
   text-transform: uppercase;
   font-size: 12px;
@@ -34,58 +43,77 @@
 }
 
 /* Custom cell styles */
-.ag-theme-alpine .ag-cell {
+.ag-theme-quartz .ag-cell {
   display: flex;
   align-items: center;
   line-height: 1.5;
 }
 
 /* Checkbox styles */
-.ag-theme-alpine .ag-checkbox-input-wrapper {
+.ag-theme-quartz .ag-checkbox-input-wrapper {
   border-radius: 4px;
 }
 
-.ag-theme-alpine .ag-checkbox-input-wrapper.ag-checked {
+.ag-theme-quartz .ag-checkbox-input-wrapper.ag-checked {
   background-color: hsl(var(--primary));
   border-color: hsl(var(--primary));
 }
 
 /* Filter styles */
-.ag-theme-alpine .ag-filter-toolpanel-header,
-.ag-theme-alpine .ag-filter-toolpanel-search,
-.ag-theme-alpine .ag-filter {
+.ag-theme-quartz .ag-filter-toolpanel-header,
+.ag-theme-quartz .ag-filter-toolpanel-search,
+.ag-theme-quartz .ag-filter {
   background-color: hsl(var(--card));
   color: hsl(var(--foreground));
 }
 
+/* Side panel styles */
+.ag-theme-quartz .ag-side-panel {
+  background-color: hsl(var(--card));
+  border-left: 1px solid hsl(var(--border));
+}
+
+/* Row grouping panel */
+.ag-theme-quartz .ag-row-group-panel {
+  background-color: hsl(var(--muted) / 0.3);
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 8px;
+}
+
 /* Pagination styles */
-.ag-theme-alpine .ag-paging-panel {
+.ag-theme-quartz .ag-paging-panel {
   border-top: 1px solid hsl(var(--border));
   background-color: hsl(var(--muted) / 0.3);
   padding: 12px;
 }
 
+/* Status bar styles */
+.ag-theme-quartz .ag-status-bar {
+  background-color: hsl(var(--muted) / 0.3);
+  border-top: 1px solid hsl(var(--border));
+}
+
 /* Scrollbar customization */
-.ag-theme-alpine .ag-body-horizontal-scroll,
-.ag-theme-alpine .ag-body-vertical-scroll {
+.ag-theme-quartz .ag-body-horizontal-scroll,
+.ag-theme-quartz .ag-body-vertical-scroll {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
 }
 
-.ag-theme-alpine ::-webkit-scrollbar {
+.ag-theme-quartz ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-.ag-theme-alpine ::-webkit-scrollbar-track {
+.ag-theme-quartz ::-webkit-scrollbar-track {
   background: hsl(var(--muted));
 }
 
-.ag-theme-alpine ::-webkit-scrollbar-thumb {
+.ag-theme-quartz ::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground));
   border-radius: 4px;
 }
 
-.ag-theme-alpine ::-webkit-scrollbar-thumb:hover {
+.ag-theme-quartz ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--foreground));
 }
