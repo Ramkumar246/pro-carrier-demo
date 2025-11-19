@@ -23,11 +23,14 @@ LicenseManager.setLicenseKey(
   "This is a development-only AG Grid Enterprise evaluation. Replace with your license key."
 );
 
+export type TransportMode = "Sea" | "Air" | "Road";
+
 export interface Shipment {
   id: string;
   status: string;
   origin: string;
   route: string;
+  transportMode: TransportMode;
   departure: string;
   arrival: string;
   delivery: string;
@@ -116,6 +119,17 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
       headerName: 'ROUTE',
       field: 'route',
       width: 220,
+      filter: 'agTextColumnFilter',
+      floatingFilter: true,
+      sortable: true,
+      resizable: true,
+      enableRowGroup: true,
+      enablePivot: true,
+    },
+    {
+      headerName: 'MODE',
+      field: 'transportMode',
+      width: 140,
       filter: 'agTextColumnFilter',
       floatingFilter: true,
       sortable: true,

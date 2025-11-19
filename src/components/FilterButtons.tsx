@@ -1,27 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { transportFilterOptions, type TransportFilter } from "@/data/shipments";
 
-const filters = ["Sea Freight", "Air Freight", "Road Freight", "All"];
+interface FilterButtonsProps {
+  activeFilter: TransportFilter;
+  onFilterChange: (filter: TransportFilter) => void;
+}
 
-const FilterButtons = () => {
-  const [activeFilter, setActiveFilter] = useState("Sea Freight");
-
+const FilterButtons = ({ activeFilter, onFilterChange }: FilterButtonsProps) => {
   return (
     <div className="flex gap-3">
-      {filters.map((filter) => (
+      {transportFilterOptions.map(({ label, value }) => (
         <Button
-          key={filter}
-          variant={activeFilter === filter ? "default" : "outline"}
+          key={value}
+          variant={activeFilter === value ? "default" : "outline"}
           className={cn(
             "rounded-full px-6",
-            activeFilter === filter
+            activeFilter === value
               ? "bg-primary text-primary-foreground shadow-lg"
-              : "border-border hover:bg-muted"
+              : "border-border hover:bg-muted",
           )}
-          onClick={() => setActiveFilter(filter)}
+          onClick={() => onFilterChange(value)}
         >
-          {filter}
+          {label}
         </Button>
       ))}
     </div>
