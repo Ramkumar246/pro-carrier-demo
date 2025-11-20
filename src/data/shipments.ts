@@ -30,7 +30,7 @@ export const shipmentData = {
       volumeTeu: 4,
       containers: 3,
       costUsd: 82000,
-      containerMode: "FCL",
+      containerMode: "LCL",
     },
     {
       id: "PC#2025-084407",
@@ -72,7 +72,7 @@ export const shipmentData = {
       volumeTeu: 3,
       containers: 2,
       costUsd: 70050,
-      containerMode: "ROR",
+      containerMode: "LCL",
     },
     {
       id: "PC#2025-084409",
@@ -93,7 +93,7 @@ export const shipmentData = {
       volumeTeu: 5,
       containers: 4,
       costUsd: 98000,
-      containerMode: "FCL",
+      containerMode: "LCL",
     },
     {
       id: "PC#2025-084410",
@@ -282,7 +282,7 @@ export const shipmentData = {
       volumeTeu: 4,
       containers: 3,
       costUsd: 90000,
-      containerMode: "ROR",
+      containerMode: "LCL",
     },
     {
       id: "PC#2025-084419",
@@ -303,7 +303,7 @@ export const shipmentData = {
       volumeTeu: 3,
       containers: 2,
       costUsd: 74000,
-      containerMode: "FCL",
+      containerMode: "LCL",
     },
     {
       id: "PC#2025-084420",
@@ -387,7 +387,7 @@ export const shipmentData = {
       volumeTeu: 3,
       containers: 2,
       costUsd: 76000,
-      containerMode: "ROR",
+      containerMode: "LCL",
     },
   ] as Shipment[],
   pending: [
@@ -410,7 +410,7 @@ export const shipmentData = {
       volumeTeu: 3,
       containers: 2,
       costUsd: 56000,
-      containerMode: "FCL",
+      containerMode: "LCL",
     },
     {
       id: "PN#2025-010002",
@@ -452,7 +452,7 @@ export const shipmentData = {
       volumeTeu: 3,
       containers: 2,
       costUsd: 60000,
-      containerMode: "ROR",
+      containerMode: "FCL",
     },
     {
       id: "PN#2025-010004",
@@ -517,7 +517,7 @@ export const shipmentData = {
       volumeTeu: 4,
       containers: 3,
       costUsd: 78000,
-      containerMode: "FCL",
+      containerMode: "LCL",
     },
     {
       id: "CP#2025-000902",
@@ -559,7 +559,7 @@ export const shipmentData = {
       volumeTeu: 3,
       containers: 2,
       costUsd: 65000,
-      containerMode: "ROR",
+      containerMode: "LCL",
     },
     {
       id: "CP#2025-000904",
@@ -580,7 +580,7 @@ export const shipmentData = {
       volumeTeu: 5,
       containers: 4,
       costUsd: 99000,
-      containerMode: "FCL",
+      containerMode: "LCL",
     },
     {
       id: "CP#2025-000905",
@@ -622,7 +622,7 @@ export const shipmentData = {
       volumeTeu: 4,
       containers: 3,
       costUsd: 87000,
-      containerMode: "ROR",
+      containerMode: "LCL",
     },
     {
       id: "CP#2025-000907",
@@ -643,7 +643,7 @@ export const shipmentData = {
       volumeTeu: 3,
       containers: 2,
       costUsd: 64000,
-      containerMode: "FCL",
+      containerMode: "LCL",
     },
     {
       id: "CP#2025-000908",
@@ -685,7 +685,7 @@ export const shipmentData = {
       volumeTeu: 4,
       containers: 3,
       costUsd: 79000,
-      containerMode: "ROR",
+      containerMode: "LCL",
     },
     {
       id: "CP#2025-000910",
@@ -748,7 +748,7 @@ export const shipmentData = {
       volumeTeu: 4,
       containers: 3,
       costUsd: 91000,
-      containerMode: "ROR",
+      containerMode: "LCL",
     },
     {
       id: "CP#2025-000913",
