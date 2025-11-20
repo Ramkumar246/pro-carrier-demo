@@ -1,4 +1,4 @@
-import type { Shipment, TransportMode } from "@/components/ShipmentTable";
+import type { Shipment, TransportMode } from "@/types/shipment";
 
 export type TransportFilter = TransportMode | "All";
 
@@ -18,7 +18,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "16/09/2025",
+      departureActualDate: "17/09/2025", // 1 day delay
       arrival: "18/10/2025",
+      arrivalActualDate: null, // Not yet arrived
       delivery: "18/10/2025",
       deliveryActualDate: "20/10/2025", // 2 days delay
       pickup: "15/09/2025",
@@ -36,7 +38,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "16/09/2025",
+      departureActualDate: "16/09/2025", // On time
       arrival: "20/10/2025",
+      arrivalActualDate: null, // Not yet arrived
       delivery: "24/10/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "15/09/2025",
@@ -54,7 +58,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "18/09/2025",
+      departureActualDate: "18/09/2025", // On time
       arrival: "22/10/2025",
+      arrivalActualDate: null, // Not yet arrived
       delivery: "24/10/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "17/09/2025",
@@ -72,7 +78,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "18/09/2025",
+      departureActualDate: "19/09/2025", // 1 day delay
       arrival: "25/10/2025",
+      arrivalActualDate: null, // Not yet arrived
       delivery: "27/10/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "17/09/2025",
@@ -90,7 +98,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "20/09/2025",
+      departureActualDate: "21/09/2025", // 1 day delay
       arrival: "29/10/2025",
+      arrivalActualDate: null, // Not yet arrived
       delivery: "30/10/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "19/09/2025",
@@ -108,7 +118,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "22/09/2025",
+      departureActualDate: "23/09/2025", // 1 day delay
       arrival: "01/11/2025",
+      arrivalActualDate: null, // Not yet arrived
       delivery: "04/11/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "21/09/2025",
@@ -126,7 +138,9 @@ export const shipmentData = {
       route: "Doha → Frankfurt",
       transportMode: "Air" as TransportMode,
       departure: "24/09/2025",
+      departureActualDate: "24/09/2025", // On time
       arrival: "25/09/2025",
+      arrivalActualDate: null, // Not yet arrived
       delivery: "26/09/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "23/09/2025",
@@ -144,7 +158,9 @@ export const shipmentData = {
       route: "Warsaw → Munich",
       transportMode: "Road" as TransportMode,
       departure: "23/09/2025",
+      departureActualDate: "23/09/2025", // On time
       arrival: "27/09/2025",
+      arrivalActualDate: "27/09/2025", // On time
       delivery: "27/09/2025",
       deliveryActualDate: "28/09/2025", // 1 day delay
       pickup: "22/09/2025",
@@ -164,7 +180,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "04/10/2025",
+      departureActualDate: null,
       arrival: "12/11/2025",
+      arrivalActualDate: null,
       delivery: "14/11/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "03/10/2025",
@@ -182,7 +200,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "06/10/2025",
+      departureActualDate: null,
       arrival: "16/11/2025",
+      arrivalActualDate: null,
       delivery: "18/11/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "05/10/2025",
@@ -200,7 +220,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "10/10/2025",
+      departureActualDate: null,
       arrival: "20/11/2025",
+      arrivalActualDate: null,
       delivery: "22/11/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "09/10/2025",
@@ -218,7 +240,9 @@ export const shipmentData = {
       route: "Singapore → Los Angeles",
       transportMode: "Air" as TransportMode,
       departure: "08/10/2025",
+      departureActualDate: null,
       arrival: "09/10/2025",
+      arrivalActualDate: null,
       delivery: "10/10/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "07/10/2025",
@@ -236,7 +260,9 @@ export const shipmentData = {
       route: "Madrid → Lyon",
       transportMode: "Road" as TransportMode,
       departure: "09/10/2025",
+      departureActualDate: null,
       arrival: "13/10/2025",
+      arrivalActualDate: null,
       delivery: "14/10/2025",
       deliveryActualDate: null, // Not yet delivered
       pickup: "08/10/2025",
@@ -256,7 +282,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "01/08/2025",
+      departureActualDate: "01/08/2025", // On time
       arrival: "05/09/2025",
+      arrivalActualDate: "05/09/2025", // On time
       delivery: "06/09/2025",
       deliveryActualDate: "06/09/2025", // On time
       pickup: "31/07/2025",
@@ -274,7 +302,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "05/08/2025",
+      departureActualDate: "06/08/2025", // 1 day delay
       arrival: "12/09/2025",
+      arrivalActualDate: "13/09/2025", // 1 day delay
       delivery: "14/09/2025",
       deliveryActualDate: "16/09/2025", // 2 days delay
       pickup: "04/08/2025",
@@ -292,7 +322,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "08/08/2025",
+      departureActualDate: "09/08/2025", // 1 day delay
       arrival: "15/09/2025",
+      arrivalActualDate: "16/09/2025", // 1 day delay
       delivery: "16/09/2025",
       deliveryActualDate: "16/09/2025", // On time
       pickup: "07/08/2025",
@@ -310,7 +342,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "12/08/2025",
+      departureActualDate: "13/08/2025", // 1 day delay
       arrival: "20/09/2025",
+      arrivalActualDate: "22/09/2025", // 2 days delay
       delivery: "22/09/2025",
       deliveryActualDate: "25/09/2025", // 3 days delay
       pickup: "11/08/2025",
@@ -328,7 +362,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "15/08/2025",
+      departureActualDate: "15/08/2025", // On time
       arrival: "23/09/2025",
+      arrivalActualDate: "23/09/2025", // On time
       delivery: "24/09/2025",
       deliveryActualDate: "24/09/2025", // On time
       pickup: "14/08/2025",
@@ -346,7 +382,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "18/08/2025",
+      departureActualDate: "19/08/2025", // 1 day delay
       arrival: "26/09/2025",
+      arrivalActualDate: "27/09/2025", // 1 day delay
       delivery: "28/09/2025",
       deliveryActualDate: "29/09/2025", // 1 day delay
       pickup: "17/08/2025",
@@ -364,7 +402,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "21/08/2025",
+      departureActualDate: "21/08/2025", // On time
       arrival: "29/09/2025",
+      arrivalActualDate: "29/09/2025", // On time
       delivery: "30/09/2025",
       deliveryActualDate: "30/09/2025", // On time
       pickup: "20/08/2025",
@@ -382,7 +422,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "24/08/2025",
+      departureActualDate: "25/08/2025", // 1 day delay
       arrival: "02/10/2025",
+      arrivalActualDate: "03/10/2025", // 1 day delay
       delivery: "04/10/2025",
       deliveryActualDate: "06/10/2025", // 2 days delay
       pickup: "23/08/2025",
@@ -400,7 +442,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "27/08/2025",
+      departureActualDate: "27/08/2025", // On time
       arrival: "05/10/2025",
+      arrivalActualDate: "05/10/2025", // On time
       delivery: "06/10/2025",
       deliveryActualDate: "06/10/2025", // On time
       pickup: "26/08/2025",
@@ -418,7 +462,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "30/08/2025",
+      departureActualDate: "31/08/2025", // 1 day delay
       arrival: "08/10/2025",
+      arrivalActualDate: "09/10/2025", // 1 day delay
       delivery: "10/10/2025",
       deliveryActualDate: "12/10/2025", // 2 days delay
       pickup: "29/08/2025",
@@ -436,7 +482,9 @@ export const shipmentData = {
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "02/09/2025",
+      departureActualDate: "03/09/2025", // 1 day delay
       arrival: "10/10/2025",
+      arrivalActualDate: "11/10/2025", // 1 day delay
       delivery: "12/10/2025",
       deliveryActualDate: "12/10/2025", // On time
       pickup: "01/09/2025",
@@ -454,7 +502,9 @@ export const shipmentData = {
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "05/09/2025",
+      departureActualDate: "05/09/2025", // On time
       arrival: "14/10/2025",
+      arrivalActualDate: "15/10/2025", // 1 day delay
       delivery: "16/10/2025",
       deliveryActualDate: "18/10/2025", // 2 days delay
       pickup: "04/09/2025",
@@ -472,7 +522,9 @@ export const shipmentData = {
       route: "Incheon → Seattle",
       transportMode: "Air" as TransportMode,
       departure: "15/08/2025",
+      departureActualDate: "15/08/2025", // On time
       arrival: "16/08/2025",
+      arrivalActualDate: "16/08/2025", // On time
       delivery: "17/08/2025",
       deliveryActualDate: "17/08/2025", // On time
       pickup: "14/08/2025",
@@ -490,7 +542,9 @@ export const shipmentData = {
       route: "Prague → Amsterdam",
       transportMode: "Road" as TransportMode,
       departure: "09/09/2025",
+      departureActualDate: "10/09/2025", // 1 day delay
       arrival: "12/09/2025",
+      arrivalActualDate: "13/09/2025", // 1 day delay
       delivery: "12/09/2025",
       deliveryActualDate: "13/09/2025", // 1 day delay
       pickup: "08/09/2025",
