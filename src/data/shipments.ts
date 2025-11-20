@@ -20,6 +20,9 @@ export const shipmentData = {
       departure: "16/09/2025",
       arrival: "18/10/2025",
       delivery: "18/10/2025",
+      deliveryActualDate: "20/10/2025", // 2 days delay
+      pickup: "15/09/2025",
+      pickupActualDate: "15/09/2025", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 12800,
       volumeTeu: 4,
@@ -35,6 +38,9 @@ export const shipmentData = {
       departure: "16/09/2025",
       arrival: "20/10/2025",
       delivery: "24/10/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "15/09/2025",
+      pickupActualDate: "16/09/2025", // 1 day delay
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 9800,
       volumeTeu: 3,
@@ -50,6 +56,9 @@ export const shipmentData = {
       departure: "18/09/2025",
       arrival: "22/10/2025",
       delivery: "24/10/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "17/09/2025",
+      pickupActualDate: "17/09/2025", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 11250,
       volumeTeu: 3,
@@ -65,6 +74,9 @@ export const shipmentData = {
       departure: "18/09/2025",
       arrival: "25/10/2025",
       delivery: "27/10/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "17/09/2025",
+      pickupActualDate: "19/09/2025", // 2 days delay
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 15000,
       volumeTeu: 5,
@@ -80,6 +92,9 @@ export const shipmentData = {
       departure: "20/09/2025",
       arrival: "29/10/2025",
       delivery: "30/10/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "19/09/2025",
+      pickupActualDate: "19/09/2025", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 13200,
       volumeTeu: 4,
@@ -95,6 +110,9 @@ export const shipmentData = {
       departure: "22/09/2025",
       arrival: "01/11/2025",
       delivery: "04/11/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "21/09/2025",
+      pickupActualDate: "22/09/2025", // 1 day delay
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 10600,
       volumeTeu: 3,
@@ -110,6 +128,9 @@ export const shipmentData = {
       departure: "24/09/2025",
       arrival: "25/09/2025",
       delivery: "26/09/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "23/09/2025",
+      pickupActualDate: "23/09/2025", // On time
       tradeParty: "Middle East Logistics",
       grossWeight: 3200,
       volumeTeu: 1,
@@ -125,6 +146,9 @@ export const shipmentData = {
       departure: "23/09/2025",
       arrival: "27/09/2025",
       delivery: "27/09/2025",
+      deliveryActualDate: "28/09/2025", // 1 day delay
+      pickup: "22/09/2025",
+      pickupActualDate: "23/09/2025", // 1 day delay
       tradeParty: "EU Auto Parts",
       grossWeight: 7800,
       volumeTeu: 2,
@@ -142,6 +166,9 @@ export const shipmentData = {
       departure: "04/10/2025",
       arrival: "12/11/2025",
       delivery: "14/11/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "03/10/2025",
+      pickupActualDate: null, // Not yet picked up
       tradeParty: "XYZ Shipper China",
       grossWeight: 8900,
       volumeTeu: 3,
@@ -157,6 +184,9 @@ export const shipmentData = {
       departure: "06/10/2025",
       arrival: "16/11/2025",
       delivery: "18/11/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "05/10/2025",
+      pickupActualDate: "05/10/2025", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 10200,
       volumeTeu: 3,
@@ -172,6 +202,9 @@ export const shipmentData = {
       departure: "10/10/2025",
       arrival: "20/11/2025",
       delivery: "22/11/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "09/10/2025",
+      pickupActualDate: "11/10/2025", // 2 days delay
       tradeParty: "XYZ Shipper China",
       grossWeight: 9400,
       volumeTeu: 3,
@@ -187,6 +220,9 @@ export const shipmentData = {
       departure: "08/10/2025",
       arrival: "09/10/2025",
       delivery: "10/10/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "07/10/2025",
+      pickupActualDate: "07/10/2025", // On time
       tradeParty: "Pacific Air Cargo",
       grossWeight: 2100,
       volumeTeu: 1,
@@ -202,6 +238,9 @@ export const shipmentData = {
       departure: "09/10/2025",
       arrival: "13/10/2025",
       delivery: "14/10/2025",
+      deliveryActualDate: null, // Not yet delivered
+      pickup: "08/10/2025",
+      pickupActualDate: "09/10/2025", // 1 day delay
       tradeParty: "EU Auto Parts",
       grossWeight: 5600,
       volumeTeu: 2,
@@ -219,6 +258,9 @@ export const shipmentData = {
       departure: "01/08/2025",
       arrival: "05/09/2025",
       delivery: "06/09/2025",
+      deliveryActualDate: "06/09/2025", // On time
+      pickup: "31/07/2025",
+      pickupActualDate: "31/07/2025", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 12000,
       volumeTeu: 4,
@@ -234,6 +276,9 @@ export const shipmentData = {
       departure: "05/08/2025",
       arrival: "12/09/2025",
       delivery: "14/09/2025",
+      deliveryActualDate: "16/09/2025", // 2 days delay
+      pickup: "04/08/2025",
+      pickupActualDate: "04/08/2025", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 13400,
       volumeTeu: 4,
@@ -249,6 +294,9 @@ export const shipmentData = {
       departure: "08/08/2025",
       arrival: "15/09/2025",
       delivery: "16/09/2025",
+      deliveryActualDate: "16/09/2025", // On time
+      pickup: "07/08/2025",
+      pickupActualDate: "08/08/2025", // 1 day delay
       tradeParty: "XYZ Shipper China",
       grossWeight: 9900,
       volumeTeu: 3,
@@ -264,6 +312,9 @@ export const shipmentData = {
       departure: "12/08/2025",
       arrival: "20/09/2025",
       delivery: "22/09/2025",
+      deliveryActualDate: "25/09/2025", // 3 days delay
+      pickup: "11/08/2025",
+      pickupActualDate: "11/08/2025", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 14350,
       volumeTeu: 5,
@@ -279,6 +330,9 @@ export const shipmentData = {
       departure: "15/08/2025",
       arrival: "23/09/2025",
       delivery: "24/09/2025",
+      deliveryActualDate: "24/09/2025", // On time
+      pickup: "14/08/2025",
+      pickupActualDate: "14/08/2025", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 11800,
       volumeTeu: 4,
@@ -294,6 +348,9 @@ export const shipmentData = {
       departure: "18/08/2025",
       arrival: "26/09/2025",
       delivery: "28/09/2025",
+      deliveryActualDate: "29/09/2025", // 1 day delay
+      pickup: "17/08/2025",
+      pickupActualDate: "19/08/2025", // 2 days delay
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 12600,
       volumeTeu: 4,
@@ -309,6 +366,9 @@ export const shipmentData = {
       departure: "21/08/2025",
       arrival: "29/09/2025",
       delivery: "30/09/2025",
+      deliveryActualDate: "30/09/2025", // On time
+      pickup: "20/08/2025",
+      pickupActualDate: "20/08/2025", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 10100,
       volumeTeu: 3,
@@ -324,6 +384,9 @@ export const shipmentData = {
       departure: "24/08/2025",
       arrival: "02/10/2025",
       delivery: "04/10/2025",
+      deliveryActualDate: "06/10/2025", // 2 days delay
+      pickup: "23/08/2025",
+      pickupActualDate: "24/08/2025", // 1 day delay
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 13900,
       volumeTeu: 5,
@@ -339,6 +402,9 @@ export const shipmentData = {
       departure: "27/08/2025",
       arrival: "05/10/2025",
       delivery: "06/10/2025",
+      deliveryActualDate: "06/10/2025", // On time
+      pickup: "26/08/2025",
+      pickupActualDate: "26/08/2025", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 11500,
       volumeTeu: 4,
@@ -354,6 +420,9 @@ export const shipmentData = {
       departure: "30/08/2025",
       arrival: "08/10/2025",
       delivery: "10/10/2025",
+      deliveryActualDate: "12/10/2025", // 2 days delay
+      pickup: "29/08/2025",
+      pickupActualDate: "29/08/2025", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 13200,
       volumeTeu: 4,
@@ -369,6 +438,9 @@ export const shipmentData = {
       departure: "02/09/2025",
       arrival: "10/10/2025",
       delivery: "12/10/2025",
+      deliveryActualDate: "12/10/2025", // On time
+      pickup: "01/09/2025",
+      pickupActualDate: "02/09/2025", // 1 day delay
       tradeParty: "XYZ Shipper China",
       grossWeight: 12300,
       volumeTeu: 4,
@@ -384,6 +456,9 @@ export const shipmentData = {
       departure: "05/09/2025",
       arrival: "14/10/2025",
       delivery: "16/10/2025",
+      deliveryActualDate: "18/10/2025", // 2 days delay
+      pickup: "04/09/2025",
+      pickupActualDate: "04/09/2025", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 13600,
       volumeTeu: 4,
@@ -399,6 +474,9 @@ export const shipmentData = {
       departure: "15/08/2025",
       arrival: "16/08/2025",
       delivery: "17/08/2025",
+      deliveryActualDate: "17/08/2025", // On time
+      pickup: "14/08/2025",
+      pickupActualDate: "14/08/2025", // On time
       tradeParty: "Everfast Electronics",
       grossWeight: 2800,
       volumeTeu: 1,
@@ -414,6 +492,9 @@ export const shipmentData = {
       departure: "09/09/2025",
       arrival: "12/09/2025",
       delivery: "12/09/2025",
+      deliveryActualDate: "13/09/2025", // 1 day delay
+      pickup: "08/09/2025",
+      pickupActualDate: "09/09/2025", // 1 day delay
       tradeParty: "Nordic Furniture",
       grossWeight: 6200,
       volumeTeu: 2,

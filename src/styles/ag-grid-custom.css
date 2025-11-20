@@ -47,6 +47,10 @@
   display: flex;
   align-items: center;
   line-height: 1.5;
+  white-space: normal !important;
+  word-wrap: break-word;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 /* Checkbox styles */
