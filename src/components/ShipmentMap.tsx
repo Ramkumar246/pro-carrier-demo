@@ -136,12 +136,238 @@ const vessels: Vessel[] = [
       { id: "CONT-203", status: "In Transit", weight: "1,950 kg" },
     ],
   },
+  {
+    id: "VSL005",
+    name: "Pacific Horizon",
+    containers: 210,
+    origin: "Busan Port",
+    destination: "San Pedro Port",
+    eta: "2025-12-05",
+    etd: "2025-11-20",
+    mode: "sea",
+    progress: 40,
+    coordinates: [130.0, 33.0],
+    route: [
+      [129.0756, 35.1796], // Busan
+      [135.0, 34.0],
+      [150.0, 30.0],
+      [170.0, 32.0],
+      [-118.264, 33.732], // San Pedro near LA
+    ],
+  },
+  {
+    id: "VSL006",
+    name: "Mediterranean Runner",
+    containers: 95,
+    origin: "Gioia Tauro",
+    destination: "Port Said",
+    eta: "2025-11-28",
+    etd: "2025-11-16",
+    mode: "sea",
+    progress: 55,
+    coordinates: [18.0, 35.0],
+    route: [
+      [15.898, 38.421], // Gioia Tauro
+      [18.0, 35.0],
+      [25.0, 33.0],
+      [32.3, 31.3], // Port Said
+    ],
+  },
+  {
+    id: "VSL007",
+    name: "Baltic Trader",
+    containers: 60,
+    origin: "Tallinn Port",
+    destination: "Stockholm Port",
+    eta: "2025-11-18",
+    etd: "2025-11-12",
+    mode: "sea",
+    progress: 80,
+    coordinates: [22.0, 59.0],
+    route: [
+      [24.7536, 59.437], // Tallinn
+      [22.0, 59.0],
+      [18.0686, 59.3293], // Stockholm
+    ],
+  },
+  {
+    id: "VSL008",
+    name: "Trans-Siberian Freight",
+    containers: 140,
+    origin: "Moscow",
+    destination: "Beijing",
+    eta: "2025-11-30",
+    etd: "2025-11-10",
+    mode: "road",
+    progress: 50,
+    coordinates: [60.0, 55.0],
+    route: [
+      [37.6173, 55.7558], // Moscow
+      [60.0, 55.0],
+      [80.0, 50.0],
+      [110.0, 40.0],
+      [116.4074, 39.9042], // Beijing
+    ],
+  },
+  {
+    id: "VSL009",
+    name: "Latin Air Bridge",
+    containers: 50,
+    origin: "São Paulo",
+    destination: "Madrid",
+    eta: "2025-11-22",
+    etd: "2025-11-19",
+    mode: "air",
+    progress: 35,
+    coordinates: [-30.0, 0.0],
+    route: [
+      [-46.6333, -23.5505], // São Paulo
+      [-30.0, 0.0],
+      [-10.0, 20.0],
+      [-3.7038, 40.4168], // Madrid
+    ],
+  },
+  {
+    id: "VSL010",
+    name: "Arctic Supply Run",
+    containers: 25,
+    origin: "Anchorage",
+    destination: "Nome",
+    eta: "2025-11-21",
+    etd: "2025-11-18",
+    mode: "air",
+    progress: 70,
+    coordinates: [-162.0, 60.0],
+    route: [
+      [-149.9003, 61.2181], // Anchorage
+      [-160.0, 62.0],
+      [-165.4064, 64.5011], // Nome
+    ],
+  },
+  {
+    id: "VSL011",
+    name: "Great Lakes Carrier",
+    containers: 75,
+    origin: "Chicago Port",
+    destination: "Toronto Port",
+    eta: "2025-11-19",
+    etd: "2025-11-13",
+    mode: "sea",
+    progress: 60,
+    coordinates: [-84.0, 44.0],
+    route: [
+      [-87.6298, 41.8781], // Chicago
+      [-86.0, 43.0],
+      [-84.0, 44.0],
+      [-79.3832, 43.6532], // Toronto
+    ],
+  },
+  {
+    id: "VSL012",
+    name: "Sahara Logistics",
+    containers: 110,
+    origin: "Casablanca",
+    destination: "Dakar",
+    eta: "2025-11-29",
+    etd: "2025-11-17",
+    mode: "road",
+    progress: 45,
+    coordinates: [-10.0, 20.0],
+    route: [
+      [-7.5898, 33.5731], // Casablanca
+      [-9.0, 30.0],
+      [-10.0, 25.0],
+      [-15.0, 20.0],
+      [-17.4734, 14.7167], // Dakar
+    ],
+  },
+  {
+    id: "VSL013",
+    name: "Pan-American Shuttle",
+    containers: 90,
+    origin: "Panama City",
+    destination: "Houston",
+    eta: "2025-11-26",
+    etd: "2025-11-15",
+    mode: "sea",
+    progress: 50,
+    coordinates: [-85.0, 20.0],
+    route: [
+      [-79.5167, 8.9833], // Panama City
+      [-85.0, 20.0],
+      [-90.0, 25.0],
+      [-95.3698, 29.7604], // Houston
+    ],
+  },
+  {
+    id: "VSL014",
+    name: "Indo-Pacific Courier",
+    containers: 130,
+    origin: "Mumbai",
+    destination: "Sydney",
+    eta: "2025-12-10",
+    etd: "2025-11-12",
+    mode: "sea",
+    progress: 35,
+    coordinates: [70.0, 5.0],
+    route: [
+      [72.8777, 19.076], // Mumbai
+      [80.0, 10.0],
+      [95.0, 0.0],
+      [110.0, -10.0],
+      [151.2093, -33.8688], // Sydney
+    ],
+  },
+  {
+    id: "VSL015",
+    name: "Baltic Air Cargo",
+    containers: 42,
+    origin: "Helsinki",
+    destination: "Dubai",
+    eta: "2025-11-24",
+    etd: "2025-11-20",
+    mode: "air",
+    progress: 30,
+    coordinates: [40.0, 35.0],
+    route: [
+      [24.9384, 60.1699], // Helsinki
+      [30.0, 50.0],
+      [35.0, 45.0],
+      [40.0, 35.0],
+      [55.2708, 25.2048], // Dubai
+    ],
+  },
 ];
 
 const ShipmentMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
+  
+  // Helper function to create GeoJSON from vessels array
+  const createVesselsGeoJSON = (vesselList: Vessel[]) => {
+    return {
+      type: "FeatureCollection" as const,
+      features: vesselList.map((vessel) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: vessel.coordinates,
+        },
+        properties: {
+          id: vessel.id,
+          name: vessel.name,
+          containers: vessel.containers,
+          origin: vessel.origin,
+          destination: vessel.destination,
+          eta: vessel.eta,
+          etd: vessel.etd,
+          mode: vessel.mode,
+          progress: vessel.progress,
+        },
+      })),
+    };
+  };
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -164,27 +390,7 @@ const ShipmentMap = () => {
       // Add vessel data as GeoJSON source
       map.current.addSource("vessels", {
         type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: vessels.map((vessel) => ({
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: vessel.coordinates,
-            },
-            properties: {
-              id: vessel.id,
-              name: vessel.name,
-              containers: vessel.containers,
-              origin: vessel.origin,
-              destination: vessel.destination,
-              eta: vessel.eta,
-              etd: vessel.etd,
-              mode: vessel.mode,
-              progress: vessel.progress,
-            },
-          })),
-        },
+        data: createVesselsGeoJSON(vessels),
         cluster: true,
         clusterMaxZoom: 8,
         clusterRadius: 50,
@@ -226,7 +432,7 @@ const ShipmentMap = () => {
         },
       });
 
-      // Add vessel icons for unclustered points
+      // Add vessel markers for unclustered points (fallback circle layer - always visible)
       map.current.addLayer({
         id: "unclustered-point",
         type: "circle",
@@ -238,6 +444,51 @@ const ShipmentMap = () => {
           "circle-stroke-width": 2,
           "circle-stroke-color": "#ffffff",
         },
+      });
+
+      // Create ship icon SVG (better visibility)
+      const shipIconSvg = `
+        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          <path d="M6 20 L34 20 L31 30 L24 30 L21 23 L19 23 L16 30 L9 30 Z" fill="#3b82f6" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
+          <circle cx="20" cy="15" r="4" fill="#ffffff"/>
+          <path d="M12 20 L28 20" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      `;
+      const shipIconUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(shipIconSvg);
+
+      // Load ship icon image and add symbol layer on top
+      map.current.loadImage(shipIconUrl, (error, image) => {
+        if (error || !image || !map.current) {
+          console.warn("Failed to load ship icon, using circle markers");
+          return;
+        }
+        
+        if (!map.current.hasImage("ship-icon")) {
+          map.current.addImage("ship-icon", image);
+        }
+
+        // Add vessel icon layer on top of circle layer
+        if (!map.current.getLayer("unclustered-point-icon")) {
+          map.current.addLayer({
+            id: "unclustered-point-icon",
+            type: "symbol",
+            source: "vessels",
+            filter: ["!", ["has", "point_count"]],
+            layout: {
+              "icon-image": "ship-icon",
+              "icon-size": 1.2,
+              "icon-allow-overlap": true,
+              "icon-ignore-placement": true,
+            },
+          });
+          
+          // Icon layer is now on top, circle layer remains as fallback/background
+        }
       });
 
       // Click on cluster to zoom in
@@ -259,8 +510,8 @@ const ShipmentMap = () => {
         });
       });
 
-      // Show popup on vessel click
-      map.current.on("click", "unclustered-point", (e) => {
+      // Helper function to handle vessel click
+      const handleVesselClick = (e: any) => {
         if (!e.features || e.features.length === 0) return;
         
         const coordinates = (e.features[0].geometry as any).coordinates.slice();
@@ -363,7 +614,7 @@ const ShipmentMap = () => {
             source: "origin-port",
             paint: {
               "circle-radius": 10,
-              "circle-color": "#22c55e",
+              "circle-color": "#3b82f6",
               "circle-stroke-width": 2,
               "circle-stroke-color": "#ffffff",
             },
@@ -400,7 +651,7 @@ const ShipmentMap = () => {
             source: "destination-port",
             paint: {
               "circle-radius": 10,
-              "circle-color": "#ef4444",
+              "circle-color": "#22c55e",
               "circle-stroke-width": 2,
               "circle-stroke-color": "#ffffff",
             },
@@ -408,7 +659,19 @@ const ShipmentMap = () => {
         }
 
         setSelectedVessel(vessel);
-      });
+        
+        // Filter vessels source to show only selected vessel (this hides others and disables clustering)
+        const source = map.current.getSource("vessels") as mapboxgl.GeoJSONSource;
+        if (source) {
+          source.setData(createVesselsGeoJSON([vessel]));
+        }
+      };
+
+      // Show popup on vessel click (circle layer)
+      map.current.on("click", "unclustered-point", handleVesselClick);
+      
+      // Show popup on vessel click (icon layer - if it exists)
+      map.current.on("click", "unclustered-point-icon", handleVesselClick);
 
       // Change cursor on hover
       map.current.on("mouseenter", "clusters", () => {
@@ -423,6 +686,12 @@ const ShipmentMap = () => {
       map.current.on("mouseleave", "unclustered-point", () => {
         if (map.current) map.current.getCanvas().style.cursor = "";
       });
+      map.current.on("mouseenter", "unclustered-point-icon", () => {
+        if (map.current) map.current.getCanvas().style.cursor = "pointer";
+      });
+      map.current.on("mouseleave", "unclustered-point-icon", () => {
+        if (map.current) map.current.getCanvas().style.cursor = "";
+      });
 
       // Show hover popup for vessels
       const popup = new mapboxgl.Popup({
@@ -431,7 +700,8 @@ const ShipmentMap = () => {
         offset: 15,
       });
 
-      map.current.on("mouseenter", "unclustered-point", (e) => {
+      // Helper function to handle vessel hover
+      const handleVesselHover = (e: any) => {
         if (!e.features || e.features.length === 0 || !map.current) return;
         
         const coordinates = (e.features[0].geometry as any).coordinates.slice();
@@ -448,9 +718,14 @@ const ShipmentMap = () => {
             </div>`
           )
           .addTo(map.current);
-      });
+      };
 
+      map.current.on("mouseenter", "unclustered-point", handleVesselHover);
       map.current.on("mouseleave", "unclustered-point", () => {
+        popup.remove();
+      });
+      map.current.on("mouseenter", "unclustered-point-icon", handleVesselHover);
+      map.current.on("mouseleave", "unclustered-point-icon", () => {
         popup.remove();
       });
     });
@@ -464,6 +739,12 @@ const ShipmentMap = () => {
     setSelectedVessel(null);
     
     if (map.current) {
+      // Restore all vessels with clustering enabled
+      const source = map.current.getSource("vessels") as mapboxgl.GeoJSONSource;
+      if (source) {
+        source.setData(createVesselsGeoJSON(vessels));
+      }
+
       // Remove route layers
       if (map.current.getLayer("route-completed")) {
         map.current.removeLayer("route-completed");
