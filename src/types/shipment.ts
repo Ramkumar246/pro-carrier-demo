@@ -1,5 +1,7 @@
 export type TransportMode = "Sea" | "Air" | "Road";
 
+export type ContainerMode = "FCL" | "LCL" | "ROR" | "LSE" | "LTL" | "FTL";
+
 export interface Shipment {
   id: string;
   status: string;
@@ -19,5 +21,6 @@ export interface Shipment {
   volumeTeu: number;
   containers: number;
   costUsd: number;
+  containerMode: ContainerMode;
 }
 

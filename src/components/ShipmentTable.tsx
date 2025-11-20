@@ -10,17 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   ResponsiveContainer,
   BarChart,
@@ -28,23 +22,16 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   Bar,
+  Cell,
+  PieChart,
+  Pie,
+  Legend,
 } from "recharts";
-import { Download, Filter, BarChart2, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2 } from "lucide-react";
+import { Download, Filter, BarChart2, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import type { Shipment } from "@/types/shipment";
 import type { DelayStage } from "@/lib/delay-utils";
 import { getStageDelay } from "@/lib/delay-utils";
-
-type DelayChartDatum = {
-  tradeParty: string;
-  pickup: number;
-  departure: number;
-  arrival: number;
-  delivery: number;
-};
-
-type DelayAggregationEntry = { tradeParty: string; count: number } & Record<DelayStage, number>;
 
 const DELAY_STAGES: DelayStage[] = ["pickup", "departure", "arrival", "delivery"];
 const STAGE_LABEL: Record<DelayStage, string> = {
@@ -54,10 +41,40 @@ const STAGE_LABEL: Record<DelayStage, string> = {
   delivery: "Delivery Delay",
 };
 const STAGE_COLOR: Record<DelayStage, string> = {
-  pickup: "hsl(var(--chart-1))",
-  departure: "hsl(var(--chart-2))",
-  arrival: "hsl(var(--chart-3))",
-  delivery: "hsl(var(--chart-4))",
+  pickup: "#2b2a7a", // deep indigo
+  departure: "#2f82c9", // cobalt blue
+  arrival: "#39c7c4", // teal
+  delivery: "#f85a9d", // vibrant pink
+};
+
+type DelayChartDatum = {
+  stage: DelayStage;
+  label: string;
+  delay: number;
+  count: number;
+};
+
+type ContainerMixDatum = {
+  label: string;
+  value: number;
+  mode: string;
+  color: string;
+};
+
+type ChartSelection = "delay" | "containerMix";
+
+const chartOptions: { value: ChartSelection; label: string }[] = [
+  { value: "delay", label: "Delay Overview" },
+  { value: "containerMix", label: "Container Mix" },
+];
+
+const CONTAINER_MODE_COLORS: Record<string, string> = {
+  FCL: "#4b39ef",
+  LCL: "#39bdf8",
+  ROR: "#f97316",
+  LSE: "#10b981",
+  LTL: "#ef4444",
+  FTL: "#facc15",
 };
 
 // Register AG Grid Community + Enterprise modules with Charts
@@ -119,7 +136,7 @@ const DelayCellRenderer = (props: any) => {
   );
 };
 
-const DelayStackedChart = ({ data }: { data: DelayChartDatum[] }) => {
+const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
   if (!data.length) {
     return (
       <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -128,26 +145,40 @@ const DelayStackedChart = ({ data }: { data: DelayChartDatum[] }) => {
     );
   }
 
+  const maxDelay = Math.max(...data.map((entry) => entry.delay), 0);
+  const upperBound = Math.max(5, Math.ceil(maxDelay));
+  const ticks =
+    upperBound > 0 ? Array.from({ length: upperBound }, (_, index) => index + 1) : [1, 2, 3, 4, 5];
+
   return (
     <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="mb-4 flex flex-col gap-1">
-        <h3 className="text-base font-semibold text-foreground">Delay by Trade Party</h3>
+        <h3 className="text-base font-semibold text-foreground">Average Delay by Milestone</h3>
         <p className="text-sm text-muted-foreground">
-          Displays the average delay (in days) for each shipment milestone, grouped by trade party.
+          Calculates the average number of late days across all visible shipments for each milestone.
         </p>
       </div>
       <div className="h-[320px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 8, bottom: 8, left: 8, right: 16 }}>
+          <BarChart data={data} margin={{ top: 8, bottom: 8, left: 16, right: 16 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
-              dataKey="tradeParty"
+              dataKey="label"
               tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
               interval={0}
             />
             <YAxis
+              type="number"
+              ticks={ticks}
               tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-              label={{ value: "Delay (days)", angle: -90, position: "insideLeft", fill: "hsl(var(--muted-foreground))" }}
+              label={{
+                value: "Delay (days)",
+                angle: -90,
+                position: "insideLeft",
+                offset: 10,
+                fill: "hsl(var(--muted-foreground))",
+              }}
+              domain={[0, Math.max(...ticks)]}
             />
             <Tooltip
               contentStyle={{
@@ -155,14 +186,63 @@ const DelayStackedChart = ({ data }: { data: DelayChartDatum[] }) => {
                 border: "1px solid hsl(var(--border))",
                 borderRadius: "0.5rem",
               }}
-              formatter={(value: number, name: string) => [`${value.toFixed(2)} days`, name]}
+              formatter={(value: number) => [`${value.toFixed(2)} days`, "Delay"]}
+            />
+            <Bar dataKey="delay" radius={[4, 4, 0, 0]} barSize={36}>
+              {data.map((entry) => (
+                <Cell key={entry.stage} fill={STAGE_COLOR[entry.stage]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
+const ContainerModePieChart = ({ data }: { data: ContainerMixDatum[] }) => {
+  if (!data.length) {
+    return (
+      <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        No container mode data available for the current grid selection or filters.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+      <div className="mb-4 flex flex-col gap-1">
+        <h3 className="text-base font-semibold text-foreground">Container Mix</h3>
+        <p className="text-sm text-muted-foreground">
+          Shows the distribution of shipment container modes for the current selection.
+        </p>
+      </div>
+      <div className="h-[340px] w-full pt-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "0.5rem",
+              }}
+              formatter={(value: number, name: string) => [`${value} shipments`, name]}
             />
             <Legend />
-            <Bar dataKey="pickup" stackId="delay" fill={STAGE_COLOR.pickup} name={STAGE_LABEL.pickup} />
-            <Bar dataKey="departure" stackId="delay" fill={STAGE_COLOR.departure} name={STAGE_LABEL.departure} />
-            <Bar dataKey="arrival" stackId="delay" fill={STAGE_COLOR.arrival} name={STAGE_LABEL.arrival} />
-            <Bar dataKey="delivery" stackId="delay" fill={STAGE_COLOR.delivery} name={STAGE_LABEL.delivery} />
-          </BarChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="label"
+              cx="50%"
+              cy="50%"
+              outerRadius={110}
+              label={({ name, value }) => `${name}: ${value}`}
+            >
+              {data.map((entry) => (
+                <Cell key={entry.mode} fill={entry.color} />
+              ))}
+            </Pie>
+          </PieChart>
         </ResponsiveContainer>
       </div>
     </div>
@@ -175,43 +255,71 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
   const apiRef = useRef<GridApi<Shipment> | null>(null);
   const columnApiRef = useRef<any>(null);
   const popupParent = typeof document !== 'undefined' ? document.body : undefined;
-  const [chartMode, setChartMode] = useState<"performance" | "delay">("performance");
+  const [selectedCharts, setSelectedCharts] = useState<ChartSelection[]>(["delay", "containerMix"]);
   const [delayChartData, setDelayChartData] = useState<DelayChartDatum[] | null>(null);
+  const [containerMixData, setContainerMixData] = useState<ContainerMixDatum[] | null>(null);
+
+  const toggleChartSelection = useCallback((value: ChartSelection, checked: boolean) => {
+    setSelectedCharts((prev) => {
+      if (checked) {
+        if (prev.includes(value)) return prev;
+        return [...prev, value];
+      }
+      return prev.filter((item) => item !== value);
+    });
+  }, []);
 
   const buildDelayChartData = useCallback((): DelayChartDatum[] => {
     const api = apiRef.current;
     if (!api) return [];
 
-    const aggregation = new Map<string, DelayAggregationEntry>();
+    const totals: Record<DelayStage, { sum: number; count: number }> = {
+      pickup: { sum: 0, count: 0 },
+      departure: { sum: 0, count: 0 },
+      arrival: { sum: 0, count: 0 },
+      delivery: { sum: 0, count: 0 },
+    };
 
     api.forEachNodeAfterFilterAndSort((node) => {
       const row = node.data;
       if (!row) return;
-      const tradeParty = row.tradeParty || "Unknown";
-      if (!aggregation.has(tradeParty)) {
-        aggregation.set(tradeParty, {
-          tradeParty,
-          count: 0,
-          pickup: 0,
-          departure: 0,
-          arrival: 0,
-          delivery: 0,
-        });
-      }
-      const entry = aggregation.get(tradeParty)!;
       DELAY_STAGES.forEach((stage) => {
-        const delayValue = getStageDelay(stage, row) ?? 0;
-        entry[stage] += delayValue;
+        const value = getStageDelay(stage, row);
+        if (value !== null) {
+          totals[stage].sum += value;
+          totals[stage].count += 1;
+        }
       });
-      entry.count += 1;
     });
 
-    return Array.from(aggregation.values()).map((entry) => ({
-      tradeParty: entry.tradeParty,
-      pickup: entry.count ? Number((entry.pickup / entry.count).toFixed(2)) : 0,
-      departure: entry.count ? Number((entry.departure / entry.count).toFixed(2)) : 0,
-      arrival: entry.count ? Number((entry.arrival / entry.count).toFixed(2)) : 0,
-      delivery: entry.count ? Number((entry.delivery / entry.count).toFixed(2)) : 0,
+    return DELAY_STAGES.map((stage) => {
+      const total = totals[stage];
+      const average = total.count ? Number((total.sum / total.count).toFixed(2)) : 0;
+      return {
+        stage,
+        label: STAGE_LABEL[stage],
+        delay: average,
+        count: total.count,
+      };
+    });
+  }, []);
+
+  const buildContainerMixData = useCallback((): ContainerMixDatum[] => {
+    const api = apiRef.current;
+    if (!api) return [];
+
+    const counts: Record<string, number> = {};
+    api.forEachNodeAfterFilterAndSort((node) => {
+      const row = node.data;
+      if (!row?.containerMode) return;
+      counts[row.containerMode] = (counts[row.containerMode] || 0) + 1;
+    });
+
+    return Object.entries(counts).map(([mode, count]) => ({
+      label: mode,
+      value: count,
+      mode,
+      color: CONTAINER_MODE_COLORS[mode] ?? "#94a3b8",
     }));
   }, []);
 
@@ -643,29 +751,18 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
     const api = apiRef.current;
     if (!api) return;
 
-    if (chartMode === "performance") {
+    if (selectedCharts.includes("delay")) {
+      setDelayChartData(buildDelayChartData());
+    } else {
       setDelayChartData(null);
-      const displayedRowCount = api.getDisplayedRowCount();
-      if (displayedRowCount === 0) return;
-      const selectedRows = api.getSelectedRows();
-      const rowCount = selectedRows.length > 0 ? selectedRows.length : displayedRowCount;
-      api.createRangeChart({
-        cellRange: {
-          rowStartIndex: 0,
-          rowEndIndex: Math.min(rowCount - 1, 10),
-          columns: ['grossWeight', 'volumeTeu', 'containers', 'costUsd'],
-        },
-        chartType: 'groupedColumn',
-        chartThemeName: 'ag-vivid',
-        aggFunc: 'sum',
-        chartContainer: document.body,
-      });
-      return;
     }
 
-    const chartData = buildDelayChartData();
-    setDelayChartData(chartData);
-  }, [chartMode, buildDelayChartData]);
+    if (selectedCharts.includes("containerMix")) {
+      setContainerMixData(buildContainerMixData());
+    } else {
+      setContainerMixData(null);
+    }
+  }, [selectedCharts, buildDelayChartData, buildContainerMixData]);
 
   return (
     <div className="w-full">
@@ -713,18 +810,30 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
           Reset View
         </Button>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Select
-            value={chartMode}
-            onValueChange={(value) => setChartMode(value as "performance" | "delay")}
-          >
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="Select chart mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="performance">Operations Metrics (default)</SelectItem>
-              <SelectItem value="delay">Delay by Trade Party</SelectItem>
-            </SelectContent>
-          </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <SlidersHorizontal className="h-4 w-4" />
+                Chart Options
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem className="text-xs text-muted-foreground">
+                Select one or more charts to render
+              </DropdownMenuItem>
+              <div className="my-1 h-px bg-border" />
+              {chartOptions.map((option) => (
+                <DropdownMenuCheckboxItem
+                  key={option.value}
+                  checked={selectedCharts.includes(option.value)}
+                  onCheckedChange={(checked) => toggleChartSelection(option.value, !!checked)}
+                >
+                  {option.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button 
             onClick={onGenerateChart} 
             variant="default" 
@@ -732,7 +841,7 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
             className="gap-2"
           >
             <BarChart2 className="h-4 w-4" />
-            Generate Chart
+            Render Charts
           </Button>
         </div>
       </div>
@@ -755,7 +864,7 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
           pagination
           paginationPageSize={10}
           paginationPageSizeSelector={[10, 25, 50, 100]}
-          suppressRowClickSelection={true}
+          // suppressRowClickSelection={true}
           domLayout="normal"
           suppressContextMenu={false}
           allowContextMenuWithControlKey={true}
@@ -766,7 +875,7 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
             'export',
           ]}
           enableCharts
-          enableRangeSelection
+          // enableRangeSelection
           sideBar={{
             toolPanels: [
               {
@@ -813,8 +922,21 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
           popupParent={popupParent}
         />
       </div>
-      {delayChartData && chartMode === "delay" && (
-        <DelayStackedChart data={delayChartData} />
+      {(delayChartData || containerMixData) && selectedCharts.length > 0 && (
+        <div
+          className={`mt-4 grid gap-4 ${
+            [delayChartData, containerMixData].filter(Boolean).length > 1
+              ? "lg:grid-cols-2"
+              : ""
+          }`}
+        >
+          {selectedCharts.includes("delay") && delayChartData && (
+            <DelaySummaryChart data={delayChartData} />
+          )}
+          {selectedCharts.includes("containerMix") && containerMixData && (
+            <ContainerModePieChart data={containerMixData} />
+          )}
+        </div>
       )}
     </div>
   );
