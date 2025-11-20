@@ -1,4 +1,4 @@
-import { useRef, useMemo, useCallback, useState } from 'react';
+import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { ModuleRegistry, AllCommunityModule ,themeQuartz} from 'ag-grid-community';
 import { AllEnterpriseModule, IntegratedChartsModule, LicenseManager } from 'ag-grid-enterprise';
@@ -28,7 +28,7 @@ import {
   Pie,
   Legend,
 } from "recharts";
-import { Download, Filter, BarChart2, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal } from "lucide-react";
+import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import type { Shipment } from "@/types/shipment";
 import type { DelayStage } from "@/lib/delay-utils";
 import { getStageDelay } from "@/lib/delay-utils";
@@ -399,6 +399,20 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
       wrapText: true,
     },
     {
+      headerName: 'CONTAINER MODE',
+      field: 'containerMode',
+      minWidth: 130,
+      flex: 0,
+      width: 150,
+      filter: 'agTextColumnFilter',
+      floatingFilter: true,
+      sortable: true,
+      resizable: true,
+      enableRowGroup: true,
+      enablePivot: true,
+      wrapText: true,
+    },
+    {
       headerName: 'DEPARTURE',
       children: [
         {
@@ -686,6 +700,16 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
   }), []);
 
   // Grid Ready Event
+  const renderCharts = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+
+    setDelayChartData(selectedCharts.includes("delay") ? buildDelayChartData() : null);
+    setContainerMixData(
+      selectedCharts.includes("containerMix") ? buildContainerMixData() : null,
+    );
+  }, [selectedCharts, buildDelayChartData, buildContainerMixData]);
+
   const onGridReady = useCallback((params: GridReadyEvent) => {
     apiRef.current = params.api;
     columnApiRef.current = (params as any).columnApi;
@@ -698,7 +722,8 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
         params.api.autoSizeColumns(allColumnIds, false);
       }
     }, 100);
-  }, []);
+    setTimeout(() => renderCharts(), 0);
+  }, [renderCharts]);
 
   // Export to CSV
   const onExportCSV = useCallback(() => {
@@ -747,22 +772,9 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
     }
   }, []);
 
-  const onGenerateChart = useCallback(() => {
-    const api = apiRef.current;
-    if (!api) return;
-
-    if (selectedCharts.includes("delay")) {
-      setDelayChartData(buildDelayChartData());
-    } else {
-      setDelayChartData(null);
-    }
-
-    if (selectedCharts.includes("containerMix")) {
-      setContainerMixData(buildContainerMixData());
-    } else {
-      setContainerMixData(null);
-    }
-  }, [selectedCharts, buildDelayChartData, buildContainerMixData]);
+  useEffect(() => {
+    renderCharts();
+  }, [data, renderCharts]);
 
   return (
     <div className="w-full">
@@ -834,15 +846,6 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button 
-            onClick={onGenerateChart} 
-            variant="default" 
-            size="sm"
-            className="gap-2"
-          >
-            <BarChart2 className="h-4 w-4" />
-            Render Charts
-          </Button>
         </div>
       </div>
 
