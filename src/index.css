@@ -117,3 +117,12 @@ All colors MUST be HSL.
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+/* Trade Party Chart specific styles */
+.trade-party-chart .recharts-surface {
+  height: 120% !important;
+}
+
+.trade-party-chart .recharts-legend-wrapper {
+  bottom: 10px !important;
+}

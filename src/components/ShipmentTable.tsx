@@ -518,7 +518,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
   ];
 
   return (
-    <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+    <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm trade-party-chart">
       <div className="mb-4 flex flex-col gap-1">
         <h3 className="text-base font-semibold text-foreground">Trade Party Cost Analysis</h3>
         <p className="text-sm text-muted-foreground">
@@ -527,7 +527,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
       </div>
       <div className="h-[400px] w-full pt-4">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 20, right: 20, bottom: 80, left: 70 }}>
+          <LineChart data={data} margin={{ top: 10, right: 10, bottom: 60, left: 50 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="tradeParty"
@@ -535,7 +535,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
               tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
               angle={-45}
               textAnchor="end"
-              height={80}
+              height={60}
               interval={0}
               label={{
                 value: "Trade Party",
@@ -556,12 +556,13 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
               label={{
                 value: "Total Cost (USD)",
                 angle: -90,
-                position: "left",
-                offset: -5,
+                position: "insideLeft",
+                offset: 0,
                 fill: "hsl(var(--muted-foreground))",
                 style: { fontSize: 12 },
               }}
               domain={[0, maxCost * 1.1]}
+              width={50}
             />
             <Tooltip
               cursor={{ strokeDasharray: "3 3" }}
