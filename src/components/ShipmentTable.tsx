@@ -1352,7 +1352,8 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
             'export',
           ]}
           enableCharts
-          // enableRangeSelection
+          enableRangeSelection={true}
+          suppressRowClickSelection={false}
           sideBar={{
             toolPanels: [
               {
