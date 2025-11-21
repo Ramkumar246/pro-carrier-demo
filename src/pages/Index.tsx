@@ -32,6 +32,20 @@ const Index = () => {
     [activeFilter],
   );
 
+  const shipmentGroups = useMemo(
+    () => ({
+      inTransit: inTransitShipments,
+      pending: pendingShipments,
+      completed: completedShipments,
+    }),
+    [inTransitShipments, pendingShipments, completedShipments],
+  );
+
+  const allShipments = useMemo(
+    () => [...shipmentGroups.inTransit, ...shipmentGroups.pending, ...shipmentGroups.completed],
+    [shipmentGroups],
+  );
+
   return (
     <div className="space-y-6">
           {/* Header */}
@@ -51,26 +65,26 @@ const Index = () => {
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 transition-all duration-500 ease-in-out">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
                 <DashboardCard title="Carbon Emissions">
-                  <CarbonEmissionsChart />
+                  <CarbonEmissionsChart shipmentGroups={shipmentGroups} />
                 </DashboardCard>
                 
                 <DashboardCard title="Shipment Volumes">
-                  <ShipmentVolumesChart />
+                  <ShipmentVolumesChart shipmentGroups={shipmentGroups} />
                 </DashboardCard>
                 
                 <DashboardCard title="Total Freight Weight">
-                  <FreightWeightChart />
+                  <FreightWeightChart shipmentGroups={shipmentGroups} />
                 </DashboardCard>
 
                 <DashboardCard title="Shipment Model, Gross & Volume">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-xs text-muted-foreground mb-2">By Model</p>
-                      <ShipmentDistributionChart type="model" />
+                      <ShipmentDistributionChart type="model" shipments={allShipments} />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-2">By Volume</p>
-                      <ShipmentDistributionChart type="volume" />
+                      <ShipmentDistributionChart type="volume" shipments={allShipments} />
                     </div>
                   </div>
                 </DashboardCard>
@@ -87,26 +101,26 @@ const Index = () => {
             <div className="space-y-6 transition-all duration-500 ease-in-out">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <DashboardCard title="Carbon Emissions">
-                  <CarbonEmissionsChart />
+                  <CarbonEmissionsChart shipmentGroups={shipmentGroups} />
                 </DashboardCard>
                 
                 <DashboardCard title="Shipment Volumes">
-                  <ShipmentVolumesChart />
+                  <ShipmentVolumesChart shipmentGroups={shipmentGroups} />
                 </DashboardCard>
                 
                 <DashboardCard title="Total Freight Weight">
-                  <FreightWeightChart />
+                  <FreightWeightChart shipmentGroups={shipmentGroups} />
                 </DashboardCard>
 
                 <DashboardCard title="Shipment Model, Gross & Volume">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-xs text-muted-foreground mb-2">By Model</p>
-                      <ShipmentDistributionChart type="model" />
+                      <ShipmentDistributionChart type="model" shipments={allShipments} />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-2">By Volume</p>
-                      <ShipmentDistributionChart type="volume" />
+                      <ShipmentDistributionChart type="volume" shipments={allShipments} />
                     </div>
                   </div>
                 </DashboardCard>
