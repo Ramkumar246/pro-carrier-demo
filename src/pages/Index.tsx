@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
 import { Ship, ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
-import TopBar from "@/components/TopBar";
 import DashboardCard from "@/components/DashboardCard";
 import CarbonEmissionsChart from "@/components/charts/CarbonEmissionsChart";
 import ShipmentVolumesChart from "@/components/charts/ShipmentVolumesChart";
@@ -35,13 +33,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className="ml-16 flex flex-col">
-        <TopBar isExpanded={isLayoutExpanded} onToggleLayout={() => setIsLayoutExpanded(!isLayoutExpanded)} />
-        
-        <main className="p-6 space-y-6">
+    <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -217,8 +209,6 @@ const Index = () => {
               </div>
             </Collapsible>
           </div>
-        </main>
-      </div>
     </div>
   );
 };
