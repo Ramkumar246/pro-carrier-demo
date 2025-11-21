@@ -24,7 +24,8 @@ export const calculateDelayDays = (
   return diffDays > 0 ? diffDays : 0;
 };
 
-export const getStageDelay = (stage: DelayStage, shipment: Shipment): number | null => {
+export const getStageDelay = (stage: DelayStage, shipment: Shipment | null | undefined): number | null => {
+  if (!shipment) return null;
   switch (stage) {
     case "pickup":
       return calculateDelayDays(shipment.pickup, shipment.pickupActualDate);

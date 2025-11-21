@@ -152,7 +152,7 @@ const Index = () => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="p-4 pt-0">
-                    <ShipmentTable data={inTransitShipments} gridId="in-transit-grid" />
+                    <ShipmentTable data={inTransitShipments} gridId="in-transit-grid" activeFilter={activeFilter} />
                     <div className="mt-4 text-center text-sm text-muted-foreground">
                       Showing 1 to {inTransitShipments.length} of {inTransitShipments.length} shipments
                     </div>
@@ -180,7 +180,7 @@ const Index = () => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="p-4 pt-0">
-                    <ShipmentTable data={pendingShipments} gridId="pending-grid" height={420} />
+                    <ShipmentTable data={pendingShipments} gridId="pending-grid" height={420} activeFilter={activeFilter} />
                     <div className="mt-4 text-center text-sm text-muted-foreground">
                       Showing 1 to {pendingShipments.length} of {pendingShipments.length} shipments
                     </div>
@@ -208,7 +208,7 @@ const Index = () => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="p-4 pt-0">
-                    <ShipmentTable data={completedShipments} gridId="completed-grid" height={480} />
+                    <ShipmentTable data={completedShipments} gridId="completed-grid" height={480} activeFilter={activeFilter} />
                     <div className="mt-4 text-center text-sm text-muted-foreground">
                       Showing 1 to {completedShipments.length} of {completedShipments.length} shipments
                     </div>

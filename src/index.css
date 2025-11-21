@@ -109,3 +109,11 @@ All colors MUST be HSL.
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 }
+
+/* Hide Recharts pie chart label lines */
+.recharts-curve,
+.recharts-pie-label-line {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}

@@ -27,6 +27,11 @@ import {
   PieChart,
   Pie,
   Legend,
+  ScatterChart,
+  Scatter,
+  ZAxis,
+  LineChart,
+  Line,
 } from "recharts";
 import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import type { Shipment } from "@/types/shipment";
@@ -59,22 +64,50 @@ type ContainerMixDatum = {
   value: number;
   mode: string;
   color: string;
+  transportMode?: string; // For grouping by transport mode
 };
 
-type ChartSelection = "delay" | "containerMix";
+type TransportModeDatum = {
+  label: string;
+  value: number;
+  mode: string;
+  color: string;
+  containerModes: ContainerMixDatum[]; // Container modes within this transport mode
+};
+
+type TradePartyCostDatum = {
+  tradeParty: string;
+  cost: number;
+  shipmentCount: number;
+  x: number; // For bubble chart positioning
+  y: number; // For bubble chart positioning
+  z: number; // For bubble size
+  color: string; // Brand color for each trade party
+};
+
+type ChartSelection = "delay" | "containerMix" | "tradePartyCost";
 
 const chartOptions: { value: ChartSelection; label: string }[] = [
   { value: "delay", label: "Delay Overview" },
   { value: "containerMix", label: "Container Mix" },
+  { value: "tradePartyCost", label: "Trade Party Cost" },
 ];
 
+// Brand colors for container modes
 const CONTAINER_MODE_COLORS: Record<string, string> = {
-  FCL: "#4b39ef",
-  LCL: "#39bdf8",
-  ROR: "#f97316",
-  LSE: "#10b981",
-  LTL: "#ef4444",
-  FTL: "#facc15",
+  FCL: "#2b2a7a", // deep indigo (from delay chart)
+  LCL: "#2f82c9", // cobalt blue (from delay chart)
+  ROR: "#39c7c4", // teal (from delay chart)
+  LSE: "#f85a9d", // vibrant pink (from delay chart)
+  LTL: "#4b39ef", // purple
+  FTL: "#10b981", // green
+};
+
+// Transport mode colors for inner donut
+const TRANSPORT_MODE_COLORS: Record<string, string> = {
+  Sea: "#2b2a7a", // deep indigo
+  Air: "#2f82c9", // cobalt blue
+  Road: "#39c7c4", // teal
 };
 
 // Register AG Grid Community + Enterprise modules with Charts
@@ -94,6 +127,7 @@ interface ShipmentTableProps {
   data: Shipment[];
   gridId: string;
   height?: number;
+  activeFilter?: "All" | "Sea" | "Air" | "Road";
 }
 
 const getStatusColor = (status: string | null | undefined) => {
@@ -200,7 +234,7 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
   );
 };
 
-const ContainerModePieChart = ({ data }: { data: ContainerMixDatum[] }) => {
+const ContainerModePieChart = ({ data, activeFilter }: { data: ContainerMixDatum[]; activeFilter?: "All" | "Sea" | "Air" | "Road" }) => {
   if (!data.length) {
     return (
       <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -208,6 +242,11 @@ const ContainerModePieChart = ({ data }: { data: ContainerMixDatum[] }) => {
       </div>
     );
   }
+
+  // Use brand colors from delay chart
+  const getColor = (mode: string) => {
+    return CONTAINER_MODE_COLORS[mode] || "hsl(var(--muted-foreground))";
+  };
 
   return (
     <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -236,10 +275,9 @@ const ContainerModePieChart = ({ data }: { data: ContainerMixDatum[] }) => {
               cx="50%"
               cy="50%"
               outerRadius={110}
-              label={({ name, value }) => `${name}: ${value}`}
             >
               {data.map((entry) => (
-                <Cell key={entry.mode} fill={entry.color} />
+                <Cell key={entry.mode} fill={getColor(entry.mode)} />
               ))}
             </Pie>
           </PieChart>
@@ -249,8 +287,306 @@ const ContainerModePieChart = ({ data }: { data: ContainerMixDatum[] }) => {
   );
 };
 
+const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: TransportModeDatum[] }) => {
+  if (!transportData.length) {
+    return (
+      <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        No container mode data available for the current grid selection or filters.
+      </div>
+    );
+  }
 
-const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
+  const getContainerColor = (mode: string) => {
+    return CONTAINER_MODE_COLORS[mode] || "hsl(var(--muted-foreground))";
+  };
+
+  const getTransportColor = (mode: string) => {
+    return TRANSPORT_MODE_COLORS[mode] || "hsl(var(--muted-foreground))";
+  };
+
+  // Calculate total for angle calculations
+  const total = transportData.reduce((sum, entry) => sum + entry.value, 0);
+  
+  // Build hierarchical data structure with calculated angles
+  let currentAngle = 90; // Start at top (12 o'clock)
+  const transportAngles = transportData.map((entry) => {
+    const angle = (entry.value / total) * 360;
+    const startAngle = currentAngle;
+    const endAngle = currentAngle + angle;
+    currentAngle = endAngle;
+    return {
+      ...entry,
+      startAngle,
+      endAngle,
+      angle,
+    };
+  });
+
+  // Build flattened container mode data with calculated angles for nested positioning
+  const containerSegments: Array<ContainerMixDatum & { startAngle: number; endAngle: number; transportMode: string }> = [];
+  
+  transportAngles.forEach((transport) => {
+    if (!transport.containerModes || transport.containerModes.length === 0) return;
+    
+    const containerTotal = transport.containerModes.reduce((sum, c) => sum + c.value, 0);
+    let containerCurrentAngle = transport.startAngle;
+    
+    transport.containerModes.forEach((container) => {
+      const containerAngle = (container.value / containerTotal) * transport.angle;
+      const containerStartAngle = containerCurrentAngle;
+      const containerEndAngle = containerCurrentAngle + containerAngle;
+      containerCurrentAngle = containerEndAngle;
+      
+      containerSegments.push({
+        ...container,
+        startAngle: containerStartAngle,
+        endAngle: containerEndAngle,
+        transportMode: transport.mode,
+      });
+    });
+  });
+
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+      <div className="mb-4 flex flex-col gap-1">
+        <h3 className="text-base font-semibold text-foreground">Container Mix</h3>
+        <p className="text-sm text-muted-foreground">
+          Inner ring shows transport modes (Sea, Air, Road). Outer ring shows container modes nested within their transport modes.
+        </p>
+      </div>
+      <div className="h-[400px] w-full pt-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "0.5rem",
+              }}
+              formatter={(value: number, name: string) => [`${value} shipments`, name]}
+            />
+            {/* Inner ring - Transport modes */}
+            <Pie
+              data={transportData}
+              dataKey="value"
+              nameKey="label"
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={100}
+              paddingAngle={2}
+              stroke="none"
+              cornerRadius={4}
+              label={(props: any) => {
+                const { cx, cy, midAngle, innerRadius, outerRadius, name } = props;
+                const RADIAN = Math.PI / 180;
+                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                
+                return (
+                  <text
+                    x={x}
+                    y={y}
+                    fill="white"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize={12}
+                    fontWeight={600}
+                  >
+                    {name}
+                  </text>
+                );
+              }}
+            >
+              {transportData.map((entry) => (
+                <Cell key={entry.mode} fill={getTransportColor(entry.mode)} stroke="none" />
+              ))}
+            </Pie>
+            {/* Outer ring - Container modes nested within transport modes */}
+            {containerSegments.map((segment, idx) => {
+              // Calculate mid angle for this segment
+              const segmentMidAngle = (segment.startAngle + segment.endAngle) / 2;
+              
+              return (
+                <Pie
+                  key={`${segment.transportMode}-${segment.mode}-${idx}`}
+                  data={[segment]}
+                  dataKey="value"
+                  nameKey="label"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={110}
+                  outerRadius={140}
+                  startAngle={segment.startAngle}
+                  endAngle={segment.endAngle}
+                  paddingAngle={1}
+                  stroke="none"
+                  cornerRadius={4}
+                  label={(props: any) => {
+                    const { cx, cy, innerRadius, outerRadius } = props;
+                    const RADIAN = Math.PI / 180;
+                    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                    const x = cx + radius * Math.cos(-segmentMidAngle * RADIAN);
+                    const y = cy + radius * Math.sin(-segmentMidAngle * RADIAN);
+                    
+                    return (
+                      <text
+                        x={x}
+                        y={y}
+                        fill="white"
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize={11}
+                        fontWeight={500}
+                      >
+                        {segment.label}
+                      </text>
+                    );
+                  }}
+                >
+                  <Cell fill={getContainerColor(segment.mode)} stroke="none" />
+                </Pie>
+              );
+            })}
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
+const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
+  if (!data.length) {
+    return (
+      <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        No trade party cost data available for the current grid selection or filters.
+      </div>
+    );
+  }
+
+  const maxCost = Math.max(...data.map((d) => d.cost), 0);
+  const brandColors = [
+    "hsl(var(--primary))",
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+    "#4b39ef",
+    "#39bdf8",
+    "#f97316",
+    "#10b981",
+  ];
+
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+      <div className="mb-4 flex flex-col gap-1">
+        <h3 className="text-base font-semibold text-foreground">Trade Party Cost Analysis</h3>
+        <p className="text-sm text-muted-foreground">
+          Shows total cost (USD) by trade party. Each point represents a trade party's total cost.
+        </p>
+      </div>
+      <div className="h-[400px] w-full pt-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 20, right: 20, bottom: 120, left: 100 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis
+              dataKey="tradeParty"
+              name="Trade Party"
+              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              angle={-45}
+              textAnchor="end"
+              height={100}
+              interval={0}
+              label={{
+                value: "Trade Party",
+                position: "insideBottom",
+                offset: -5,
+                fill: "hsl(var(--muted-foreground))",
+                style: { fontSize: 12 },
+              }}
+            />
+            <YAxis
+              type="number"
+              dataKey="cost"
+              name="Total Cost (USD)"
+              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+              tickFormatter={(value) => {
+                return Number(value).toFixed(2);
+              }}
+              label={{
+                value: "Total Cost (USD)",
+                angle: -90,
+                position: "left",
+                offset: -10,
+                fill: "hsl(var(--muted-foreground))",
+                style: { fontSize: 12 },
+              }}
+              domain={[0, maxCost * 1.1]}
+            />
+            <Tooltip
+              cursor={{ strokeDasharray: "3 3" }}
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "0.5rem",
+                padding: "8px 12px",
+              }}
+              formatter={(value: number, name: string, props: any) => {
+                if (name === "Total Cost (USD)") {
+                  return [`$${Number(value || 0).toLocaleString()}`, "Total Cost"];
+                }
+                if (name === "Shipment Count" && props?.payload) {
+                  return [`${props.payload.shipmentCount || 0} shipments`, "Count"];
+                }
+                return [value || 0, name];
+              }}
+              labelFormatter={(label) => {
+                return label || "Trade Party";
+              }}
+            />
+            <Legend 
+              wrapperStyle={{ paddingTop: '20px' }}
+              verticalAlign="bottom"
+            />
+            <Line
+              type="monotone"
+              dataKey="cost"
+              name="Total Cost (USD)"
+              stroke={brandColors[0]}
+              strokeWidth={3}
+              dot={{ fill: brandColors[0], r: 6 }}
+              activeDot={{ r: 8 }}
+              label={(props: any) => {
+                const { x, y, payload, value } = props;
+                if (!payload || (payload.cost === undefined && value === undefined)) {
+                  return null;
+                }
+                const costValue = payload?.cost ?? value ?? 0;
+                return (
+                  <text
+                    x={x}
+                    y={y - 10}
+                    fill="hsl(var(--foreground))"
+                    fontSize={10}
+                    fontWeight={500}
+                    textAnchor="middle"
+                  >
+                    ${Number(costValue).toLocaleString()}
+                  </text>
+                );
+              }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
+
+const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTableProps) => {
   const gridRef = useRef<AgGridReact<Shipment>>(null);
   const apiRef = useRef<GridApi<Shipment> | null>(null);
   const columnApiRef = useRef<any>(null);
@@ -258,6 +594,8 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
   const [selectedCharts, setSelectedCharts] = useState<ChartSelection[]>(["delay", "containerMix"]);
   const [delayChartData, setDelayChartData] = useState<DelayChartDatum[] | null>(null);
   const [containerMixData, setContainerMixData] = useState<ContainerMixDatum[] | null>(null);
+  const [transportModeData, setTransportModeData] = useState<TransportModeDatum[] | null>(null);
+  const [tradePartyCostData, setTradePartyCostData] = useState<TradePartyCostDatum[] | null>(null);
 
   const toggleChartSelection = useCallback((value: ChartSelection, checked: boolean) => {
     setSelectedCharts((prev) => {
@@ -320,6 +658,85 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
       value: count,
       mode,
       color: CONTAINER_MODE_COLORS[mode] ?? "#94a3b8",
+    }));
+  }, []);
+
+  const buildTransportModeData = useCallback((): TransportModeDatum[] => {
+    const api = apiRef.current;
+    if (!api) return [];
+
+    const transportData: Record<string, Record<string, number>> = {};
+    
+    api.forEachNodeAfterFilterAndSort((node) => {
+      const row = node.data;
+      if (!row?.transportMode || !row?.containerMode) return;
+      
+      if (!transportData[row.transportMode]) {
+        transportData[row.transportMode] = {};
+      }
+      transportData[row.transportMode][row.containerMode] = 
+        (transportData[row.transportMode][row.containerMode] || 0) + 1;
+    });
+
+    return Object.entries(transportData).map(([transportMode, containerCounts]) => {
+      const totalCount = Object.values(containerCounts).reduce((sum, count) => sum + count, 0);
+      const containerModes = Object.entries(containerCounts).map(([mode, count]) => ({
+        label: mode,
+        value: count,
+        mode,
+        color: CONTAINER_MODE_COLORS[mode] ?? "#94a3b8",
+        transportMode,
+      }));
+
+      return {
+        label: transportMode,
+        value: totalCount,
+        mode: transportMode,
+        color: TRANSPORT_MODE_COLORS[transportMode] ?? "#94a3b8",
+        containerModes,
+      };
+    });
+  }, []);
+
+  const buildTradePartyCostData = useCallback((): TradePartyCostDatum[] => {
+    const api = apiRef.current;
+    if (!api) return [];
+
+    const tradePartyData: Record<string, { totalCost: number; count: number }> = {};
+    
+    api.forEachNodeAfterFilterAndSort((node) => {
+      const row = node.data;
+      if (!row?.tradeParty || row.costUsd == null) return;
+      
+      const party = row.tradeParty;
+      if (!tradePartyData[party]) {
+        tradePartyData[party] = { totalCost: 0, count: 0 };
+      }
+      tradePartyData[party].totalCost += Number(row.costUsd) || 0;
+      tradePartyData[party].count += 1;
+    });
+
+    const brandColors = [
+      "hsl(var(--primary))",
+      "hsl(var(--chart-1))",
+      "hsl(var(--chart-2))",
+      "hsl(var(--chart-3))",
+      "hsl(var(--chart-4))",
+      "hsl(var(--chart-5))",
+      "#4b39ef",
+      "#39bdf8",
+      "#f97316",
+      "#10b981",
+    ];
+
+    return Object.entries(tradePartyData).map(([tradeParty, data], index) => ({
+      tradeParty,
+      cost: data.totalCost,
+      shipmentCount: data.count,
+      x: index + 1, // Position on X-axis
+      y: data.totalCost, // Cost on Y-axis
+      z: data.count * 10, // Bubble size based on shipment count
+      color: brandColors[index % brandColors.length],
     }));
   }, []);
 
@@ -455,6 +872,7 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
           cellRenderer: DelayCellRenderer,
           cellRendererParams: { stage: 'departure' },
           valueGetter: (params) => {
+            if (!params.data) return -1;
             const delay = getStageDelay('departure', params.data);
             return delay !== null ? delay : -1;
           },
@@ -509,6 +927,7 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
           cellRenderer: DelayCellRenderer,
           cellRendererParams: { stage: 'arrival' },
           valueGetter: (params) => {
+            if (!params.data) return -1;
             const delay = getStageDelay('arrival', params.data);
             return delay !== null ? delay : -1;
           },
@@ -548,6 +967,7 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
           cellRenderer: DelayCellRenderer,
           cellRendererParams: { stage: 'pickup' },
           valueGetter: (params: any) => {
+            if (!params.data) return -1;
             const delay = getStageDelay('pickup', params.data);
             return delay !== null ? delay : -1;
           },
@@ -587,6 +1007,7 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
           cellRenderer: DelayCellRenderer,
           cellRendererParams: { stage: 'delivery' },
           valueGetter: (params: any) => {
+            if (!params.data) return -1;
             const delay = getStageDelay('delivery', params.data);
             return delay !== null ? delay : -1;
           },
@@ -705,10 +1126,24 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
     if (!api) return;
 
     setDelayChartData(selectedCharts.includes("delay") ? buildDelayChartData() : null);
-    setContainerMixData(
-      selectedCharts.includes("containerMix") ? buildContainerMixData() : null,
+    
+    if (selectedCharts.includes("containerMix")) {
+      if (activeFilter === "All") {
+        setTransportModeData(buildTransportModeData());
+        setContainerMixData(null);
+      } else {
+        setContainerMixData(buildContainerMixData());
+        setTransportModeData(null);
+      }
+    } else {
+      setContainerMixData(null);
+      setTransportModeData(null);
+    }
+    
+    setTradePartyCostData(
+      selectedCharts.includes("tradePartyCost") ? buildTradePartyCostData() : null,
     );
-  }, [selectedCharts, buildDelayChartData, buildContainerMixData]);
+  }, [selectedCharts, buildDelayChartData, buildContainerMixData, buildTransportModeData, buildTradePartyCostData, activeFilter]);
 
   const onGridReady = useCallback((params: GridReadyEvent) => {
     apiRef.current = params.api;
@@ -925,19 +1360,30 @@ const ShipmentTable = ({ data, gridId, height = 520 }: ShipmentTableProps) => {
           popupParent={popupParent}
         />
       </div>
-      {(delayChartData || containerMixData) && selectedCharts.length > 0 && (
+      {(delayChartData || containerMixData || transportModeData || tradePartyCostData) && selectedCharts.length > 0 && (
         <div
           className={`mt-4 grid gap-4 ${
-            [delayChartData, containerMixData].filter(Boolean).length > 1
+            [delayChartData, containerMixData || transportModeData, tradePartyCostData].filter(Boolean).length === 1
+              ? ""
+              : [delayChartData, containerMixData || transportModeData, tradePartyCostData].filter(Boolean).length === 2
               ? "lg:grid-cols-2"
-              : ""
+              : "lg:grid-cols-3"
           }`}
         >
           {selectedCharts.includes("delay") && delayChartData && (
             <DelaySummaryChart data={delayChartData} />
           )}
-          {selectedCharts.includes("containerMix") && containerMixData && (
-            <ContainerModePieChart data={containerMixData} />
+          {selectedCharts.includes("containerMix") && (
+            <>
+              {activeFilter === "All" && transportModeData ? (
+                <ContainerModeMultipleDonutChart transportData={transportModeData} />
+              ) : containerMixData ? (
+                <ContainerModePieChart data={containerMixData} activeFilter={activeFilter} />
+              ) : null}
+            </>
+          )}
+          {selectedCharts.includes("tradePartyCost") && tradePartyCostData && (
+            <TradePartyCostLineChart data={tradePartyCostData} />
           )}
         </div>
       )}
