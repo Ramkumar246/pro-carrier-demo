@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, TrendingUp, Settings, LogOut, FileText } from "lucide-react";
+import { LayoutDashboard, Package, TrendingUp, Settings, LogOut, Ship } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -8,7 +8,7 @@ const Sidebar = () => {
   const navItems = [
     { icon: LayoutDashboard, path: "/", label: "Dashboard" },
     { icon: Package, path: "/shipments", label: "Shipments" },
-    { icon: FileText, path: "/external-page", label: "External Page" },
+    { icon: Ship, path: "/external-page", label: "Vessel Finder" },
   ];
 
   return (

@@ -1,0 +1,28 @@
+Delivery Address
+
+AddressCity: "GLASGOW"
+AddressCountryCode: "GB"
+AddressCountryName: "United Kingdom"
+AddressLine1: ""
+AddressLine2: ""
+AddressPostCode: "G33 1JN"
+AddressShort: "ROBROYSTON"
+AddressState: "LANARKSHIRE"
+CompanyCode: ""
+CompanyName: "Arrow Valley"
+
+
+
+Pickup Address
+
+
+
+
+AddressCity: "SHENZHEN"
+AddressCountryCode: "CN"
+AddressCountryName: "China"
+AddressLine1: ""
+AddressLine2: "NO 1 YABAO ROAD"
+AddressPostCode: null
+AddressShort: "5TH FLOOR TOWER G, GALAXY"
+AddressState: "GUANGDONG"
