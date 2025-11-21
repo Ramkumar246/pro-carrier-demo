@@ -110,9 +110,9 @@ All colors MUST be HSL.
   }
 }
 
-/* Hide Recharts pie chart label lines */
-.recharts-curve,
-.recharts-pie-label-line {
+/* Hide Recharts pie chart label lines - only for pie charts */
+.recharts-pie .recharts-curve,
+.recharts-pie .recharts-pie-label-line {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;

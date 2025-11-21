@@ -308,34 +308,72 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
   const total = transportData.reduce((sum, entry) => sum + entry.value, 0);
   
   // Build hierarchical data structure with calculated angles
-  let currentAngle = 90; // Start at top (12 o'clock)
-  const transportAngles = transportData.map((entry) => {
-    const angle = (entry.value / total) * 360;
-    const startAngle = currentAngle;
-    const endAngle = currentAngle + angle;
-    currentAngle = endAngle;
+  // Start at top (12 o'clock = 90 degrees in Recharts coordinate system)
+  const startAngle = 90;
+  const paddingAngleDegrees = 2; // paddingAngle in degrees for inner ring
+  const containerPaddingAngle = 1; // paddingAngle in degrees for outer ring
+  
+  // Calculate angles for inner ring (transport modes)
+  let cumulativeAngle = startAngle;
+  const transportAngles = transportData.map((entry, index) => {
+    // Calculate the proportional angle for this transport mode
+    const proportionalAngle = (entry.value / total) * 360;
+    
+    // For the first segment, start at startAngle
+    // For subsequent segments, account for padding from previous segment
+    const segmentStartAngle = index === 0 ? cumulativeAngle : cumulativeAngle + paddingAngleDegrees;
+    
+    // Calculate the actual angle span (accounting for padding)
+    // The last segment doesn't need to account for padding at the end
+    const actualAngle = index === transportData.length - 1 
+      ? proportionalAngle - (index * paddingAngleDegrees)
+      : proportionalAngle - paddingAngleDegrees;
+    
+    const segmentEndAngle = segmentStartAngle + actualAngle;
+    
+    // Update cumulative angle for next segment
+    cumulativeAngle = segmentEndAngle;
+    
     return {
       ...entry,
-      startAngle,
-      endAngle,
-      angle,
+      startAngle: segmentStartAngle,
+      endAngle: segmentEndAngle,
+      angle: actualAngle, // Store the actual angle span for container mode calculations
     };
   });
 
   // Build flattened container mode data with calculated angles for nested positioning
+  // Container modes must fit exactly within their parent transport mode's angular span
   const containerSegments: Array<ContainerMixDatum & { startAngle: number; endAngle: number; transportMode: string }> = [];
   
   transportAngles.forEach((transport) => {
     if (!transport.containerModes || transport.containerModes.length === 0) return;
     
+    // Calculate total container mode count for this transport mode
     const containerTotal = transport.containerModes.reduce((sum, c) => sum + c.value, 0);
-    let containerCurrentAngle = transport.startAngle;
     
-    transport.containerModes.forEach((container) => {
-      const containerAngle = (container.value / containerTotal) * transport.angle;
-      const containerStartAngle = containerCurrentAngle;
-      const containerEndAngle = containerCurrentAngle + containerAngle;
-      containerCurrentAngle = containerEndAngle;
+    // Container modes must fit within the transport mode's angle range
+    // Start from the transport mode's startAngle
+    let containerCumulativeAngle = transport.startAngle;
+    const numContainers = transport.containerModes.length;
+    
+    transport.containerModes.forEach((container, containerIndex) => {
+      // Calculate proportional angle within the transport mode's available angle
+      // The available angle is the transport mode's angle minus padding for container segments
+      const totalContainerPadding = (numContainers - 1) * containerPaddingAngle;
+      const availableAngle = transport.angle - totalContainerPadding;
+      
+      const containerProportionalAngle = (container.value / containerTotal) * availableAngle;
+      
+      // Calculate start and end angles for this container segment
+      const containerStartAngle = containerIndex === 0 
+        ? containerCumulativeAngle 
+        : containerCumulativeAngle + containerPaddingAngle;
+      
+      const containerEndAngle = containerStartAngle + containerProportionalAngle;
+      
+      // Update cumulative angle for next container segment
+      containerCumulativeAngle = containerEndAngle;
       
       containerSegments.push({
         ...container,
@@ -489,7 +527,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
       </div>
       <div className="h-[400px] w-full pt-4">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 20, right: 20, bottom: 120, left: 100 }}>
+          <LineChart data={data} margin={{ top: 20, right: 20, bottom: 80, left: 70 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="tradeParty"
@@ -497,7 +535,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
               tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
               angle={-45}
               textAnchor="end"
-              height={100}
+              height={80}
               interval={0}
               label={{
                 value: "Trade Party",
@@ -519,7 +557,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
                 value: "Total Cost (USD)",
                 angle: -90,
                 position: "left",
-                offset: -10,
+                offset: -5,
                 fill: "hsl(var(--muted-foreground))",
                 style: { fontSize: 12 },
               }}
