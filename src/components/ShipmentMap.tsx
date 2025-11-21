@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Ship, Package, Calendar, MapPin, X } from "lucide-react";
+import navIcon from "@/assets/vessel-finder/nav.png";
 
 interface Vessel {
   id: string;
@@ -23,6 +24,9 @@ interface Vessel {
     completed: boolean;
   }[];
   containerList?: { id: string; status: string; weight: string }[];
+  // Optional metadata used for map styling/labels
+  shipmentCount?: number;
+  status?: "on-time" | "delayed";
 }
 
 const vessels: Vessel[] = [
@@ -36,7 +40,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-15",
     mode: "sea",
     progress: 65,
-    coordinates: [104.794, 1.78514],
+    coordinates: [120.0, 18.0],
     route: [
       [114.287, 22.5693], // Qingdao
       [109.777, 9.99833], // Mid point
@@ -68,7 +72,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-18",
     mode: "air",
     progress: 45,
-    coordinates: [121.4737, 31.2304],
+    coordinates: [130.0, 30.0],
     route: [
       [121.4737, 31.2304], // Shanghai
       [140.0, 35.0],
@@ -96,7 +100,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-20",
     mode: "sea",
     progress: 30,
-    coordinates: [9.9937, 53.5511],
+    coordinates: [-5.0, 50.0],
     route: [
       [9.9937, 53.5511], // Hamburg
       [-10.0, 53.0],
@@ -119,7 +123,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-19",
     mode: "sea",
     progress: 55,
-    coordinates: [2.5, 52.0],
+    coordinates: [3.0, 55.0],
     route: [
       [4.477, 51.924], // Rotterdam
       [2.5, 52.0], // North Sea (current)
@@ -146,7 +150,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-20",
     mode: "sea",
     progress: 40,
-    coordinates: [130.0, 33.0],
+    coordinates: [140.0, 25.0],
     route: [
       [129.0756, 35.1796], // Busan
       [135.0, 34.0],
@@ -165,7 +169,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-16",
     mode: "sea",
     progress: 55,
-    coordinates: [18.0, 35.0],
+    coordinates: [18.0, 37.0],
     route: [
       [15.898, 38.421], // Gioia Tauro
       [18.0, 35.0],
@@ -183,7 +187,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-12",
     mode: "sea",
     progress: 80,
-    coordinates: [22.0, 59.0],
+    coordinates: [20.0, 58.0],
     route: [
       [24.7536, 59.437], // Tallinn
       [22.0, 59.0],
@@ -200,7 +204,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-10",
     mode: "road",
     progress: 50,
-    coordinates: [60.0, 55.0],
+    coordinates: [-18.0, 10.0],
     route: [
       [37.6173, 55.7558], // Moscow
       [60.0, 55.0],
@@ -219,7 +223,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-19",
     mode: "air",
     progress: 35,
-    coordinates: [-30.0, 0.0],
+    coordinates: [-60.0, 10.0],
     route: [
       [-46.6333, -23.5505], // São Paulo
       [-30.0, 0.0],
@@ -237,7 +241,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-18",
     mode: "air",
     progress: 70,
-    coordinates: [-162.0, 60.0],
+    coordinates: [-80.0, 30.0],
     route: [
       [-149.9003, 61.2181], // Anchorage
       [-160.0, 62.0],
@@ -254,7 +258,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-13",
     mode: "sea",
     progress: 60,
-    coordinates: [-84.0, 44.0],
+    coordinates: [-70.0, 40.0],
     route: [
       [-87.6298, 41.8781], // Chicago
       [-86.0, 43.0],
@@ -272,7 +276,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-17",
     mode: "road",
     progress: 45,
-    coordinates: [-10.0, 20.0],
+    coordinates: [-22.0, 20.0],
     route: [
       [-7.5898, 33.5731], // Casablanca
       [-9.0, 30.0],
@@ -291,7 +295,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-15",
     mode: "sea",
     progress: 50,
-    coordinates: [-85.0, 20.0],
+    coordinates: [-80.0, 20.0],
     route: [
       [-79.5167, 8.9833], // Panama City
       [-85.0, 20.0],
@@ -309,7 +313,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-12",
     mode: "sea",
     progress: 35,
-    coordinates: [70.0, 5.0],
+    coordinates: [110.0, 15.0],
     route: [
       [72.8777, 19.076], // Mumbai
       [80.0, 10.0],
@@ -328,7 +332,7 @@ const vessels: Vessel[] = [
     etd: "2025-11-20",
     mode: "air",
     progress: 30,
-    coordinates: [40.0, 35.0],
+    coordinates: [25.0, 42.0],
     route: [
       [24.9384, 60.1699], // Helsinki
       [30.0, 50.0],
@@ -348,31 +352,79 @@ const ShipmentMap = () => {
   const createVesselsGeoJSON = (vesselList: Vessel[]) => {
     return {
       type: "FeatureCollection" as const,
-      features: vesselList.map((vessel) => ({
-        type: "Feature" as const,
-        geometry: {
-          type: "Point" as const,
-          coordinates: vessel.coordinates,
-        },
-        properties: {
-          id: vessel.id,
-          name: vessel.name,
-          containers: vessel.containers,
-          origin: vessel.origin,
-          destination: vessel.destination,
-          eta: vessel.eta,
-          etd: vessel.etd,
-          mode: vessel.mode,
-          progress: vessel.progress,
-        },
-      })),
+      features: vesselList.map((vessel) => {
+        // Derive a small shipment count (1-3) and on-time/delayed status
+        const derivedShipmentCount =
+          vessel.shipmentCount ??
+          (vessel.containerList?.length ?? Math.max(1, Math.min(3, Math.round(vessel.containers / 80))));
+        const derivedStatus: "on-time" | "delayed" =
+          vessel.status ?? (vessel.progress >= 50 ? "on-time" : "delayed");
+
+        return {
+          type: "Feature" as const,
+          geometry: {
+            type: "Point" as const,
+            coordinates: vessel.coordinates,
+          },
+          properties: {
+            id: vessel.id,
+            name: vessel.name,
+            containers: vessel.containers,
+            origin: vessel.origin,
+            destination: vessel.destination,
+            eta: vessel.eta,
+            etd: vessel.etd,
+            mode: vessel.mode,
+            progress: vessel.progress,
+            shipmentCount: derivedShipmentCount,
+            status: derivedStatus,
+          },
+        };
+      }),
     };
+  };
+
+  // Compute an approximate current position for a vessel along its route
+  const getVesselRoutePosition = (vessel: Vessel): [number, number] => {
+    const route = vessel.route;
+    if (!route || route.length === 0) {
+      return vessel.coordinates;
+    }
+
+    const totalSegments = route.length - 1;
+    if (totalSegments <= 0) {
+      return route[0] as [number, number];
+    }
+
+    const tGlobal = Math.max(0, Math.min(1, vessel.progress / 100));
+    const target = tGlobal * totalSegments;
+    const segIndex = Math.min(totalSegments - 1, Math.floor(target));
+    const localT = target - segIndex;
+
+    const [x1, y1] = route[segIndex] as [number, number];
+    const [x2, y2] = route[segIndex + 1] as [number, number];
+
+    const x = x1 + (x2 - x1) * localT;
+    const y = y1 + (y2 - y1) * localT;
+
+    return [x, y];
   };
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
     mapboxgl.accessToken = "pk.eyJ1IjoicmFtcmsiLCJhIjoiY21pMnJtZ210MWJ5aTJpc2ZlZDA0NDJwbCJ9.xoIYILnPn4wZpzM_zZBGTQ";
+    const resolveCssVarColor = (varName: string, fallback: string) => {
+      const el = document.createElement("div");
+      el.style.color = `hsl(var(${varName}))`;
+      document.body.appendChild(el);
+      const color = getComputedStyle(el).color;
+      document.body.removeChild(el);
+      return color || fallback;
+    };
+
+    const primaryColor = resolveCssVarColor("--primary", "#0b1f3b");
+    const accentColor = resolveCssVarColor("--accent", "#1d4ed8");
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -392,8 +444,23 @@ const ShipmentMap = () => {
         type: "geojson",
         data: createVesselsGeoJSON(vessels),
         cluster: true,
-        clusterMaxZoom: 8,
+        // Clusters only at global/medium zoom; above this zoom, points become individual vessels
+        clusterMaxZoom: 4,
         clusterRadius: 50,
+      });
+
+      // Add soft outer glow for clusters using accent color (approx gradient-to)
+      map.current.addLayer({
+        id: "clusters-outer",
+        type: "circle",
+        source: "vessels",
+        filter: ["has", "point_count"],
+        paint: {
+          "circle-color": accentColor,
+          "circle-radius": ["step", ["get", "point_count"], 26, 5, 36, 10, 46],
+          "circle-blur": 0.4,
+          "circle-opacity": 0.9,
+        },
       });
 
       // Add cluster circles
@@ -403,15 +470,7 @@ const ShipmentMap = () => {
         source: "vessels",
         filter: ["has", "point_count"],
         paint: {
-          "circle-color": [
-            "step",
-            ["get", "point_count"],
-            "#3b82f6",
-            5,
-            "#2563eb",
-            10,
-            "#1d4ed8",
-          ],
+          "circle-color": primaryColor,
           "circle-radius": ["step", ["get", "point_count"], 20, 5, 30, 10, 40],
         },
       });
@@ -432,47 +491,32 @@ const ShipmentMap = () => {
         },
       });
 
-      // Add vessel markers for unclustered points (fallback circle layer - always visible)
+      // Add invisible circle hit-area for unclustered points
       map.current.addLayer({
         id: "unclustered-point",
         type: "circle",
         source: "vessels",
         filter: ["!", ["has", "point_count"]],
         paint: {
-          "circle-color": "#3b82f6",
+          "circle-color": primaryColor,
           "circle-radius": 8,
-          "circle-stroke-width": 2,
+          "circle-stroke-width": 0,
           "circle-stroke-color": "#ffffff",
+          "circle-opacity": 0,
         },
       });
 
-      // Create ship icon SVG (better visibility)
-      const shipIconSvg = `
-        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <path d="M6 20 L34 20 L31 30 L24 30 L21 23 L19 23 L16 30 L9 30 Z" fill="#3b82f6" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
-          <circle cx="20" cy="15" r="4" fill="#ffffff"/>
-          <path d="M12 20 L28 20" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      `;
-      const shipIconUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(shipIconSvg);
-
-      // Load ship icon image and add symbol layer on top
-      map.current.loadImage(shipIconUrl, (error, image) => {
+      // Load nav.png and use it as the vessel icon for unclustered points
+      map.current.loadImage(navIcon, (error, image) => {
         if (error || !image || !map.current) {
-          console.warn("Failed to load ship icon, using circle markers");
+          console.warn("Failed to load nav icon, falling back to circle markers");
           return;
         }
-        
-        if (!map.current.hasImage("ship-icon")) {
-          map.current.addImage("ship-icon", image);
+
+        if (!map.current.hasImage("vessel-nav-icon")) {
+          map.current.addImage("vessel-nav-icon", image);
         }
 
-        // Add vessel icon layer on top of circle layer
         if (!map.current.getLayer("unclustered-point-icon")) {
           map.current.addLayer({
             id: "unclustered-point-icon",
@@ -480,33 +524,33 @@ const ShipmentMap = () => {
             source: "vessels",
             filter: ["!", ["has", "point_count"]],
             layout: {
-              "icon-image": "ship-icon",
-              "icon-size": 1.2,
+              "icon-image": "vessel-nav-icon",
+              "icon-size": 0.35,
+              "icon-rotate": -90,
               "icon-allow-overlap": true,
               "icon-ignore-placement": true,
             },
           });
-          
-          // Icon layer is now on top, circle layer remains as fallback/background
         }
       });
 
-      // Click on cluster to zoom in
+      // (Shipment status ring + count label removed as per latest design)
+
+      // Click on cluster to zoom in and immediately decluster into vessel icons
       map.current.on("click", "clusters", (e) => {
         if (!map.current) return;
         const features = map.current.queryRenderedFeatures(e.point, {
           layers: ["clusters"],
         });
-        const clusterId = features[0].properties.cluster_id;
-        const source = map.current.getSource("vessels") as mapboxgl.GeoJSONSource;
-        
-        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err || !map.current) return;
+        if (!features.length) return;
 
-          map.current.easeTo({
-            center: (features[0].geometry as any).coordinates,
-            zoom: zoom,
-          });
+        const coordinates = (features[0].geometry as any).coordinates.slice();
+
+        // Zoom past clusterMaxZoom so this cluster breaks into individual vessel points
+        map.current.easeTo({
+          center: coordinates,
+          zoom: 4.5,
+          duration: 800,
         });
       });
 
@@ -658,13 +702,16 @@ const ShipmentMap = () => {
           });
         }
 
-        setSelectedVessel(vessel);
-        
-        // Filter vessels source to show only selected vessel (this hides others and disables clustering)
-        const source = map.current.getSource("vessels") as mapboxgl.GeoJSONSource;
-        if (source) {
-          source.setData(createVesselsGeoJSON([vessel]));
+        // Move this vessel's icon onto its tracking line based on progress
+        const vesselsSource = map.current.getSource("vessels") as mapboxgl.GeoJSONSource;
+        if (vesselsSource) {
+          const updatedVessels = vessels.map((v) =>
+            v.id === vessel.id ? { ...v, coordinates: getVesselRoutePosition(vessel) } : v
+          );
+          vesselsSource.setData(createVesselsGeoJSON(updatedVessels));
         }
+
+        setSelectedVessel(vessel);
       };
 
       // Show popup on vessel click (circle layer)

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Ship, ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
+import { Ship, ChevronDown, ChevronUp, MoreVertical, Search } from "lucide-react";
 import DashboardCard from "@/components/DashboardCard";
 import CarbonEmissionsChart from "@/components/charts/CarbonEmissionsChart";
 import ShipmentVolumesChart from "@/components/charts/ShipmentVolumesChart";
@@ -124,28 +124,51 @@ const Index = () => {
           </div>
 
           {/* Shipment Tables */}
-          <div className="space-y-4">
+          <div className="space-y-4 pt-2">
             {/* In-Transit Shipments */}
             <Collapsible open={inTransitOpen} onOpenChange={setInTransitOpen}>
-              <div className="bg-card rounded-lg border border-border">
-                <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+              <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+                <CollapsibleTrigger className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/40 transition-colors">
                   <div className="flex items-center gap-3">
-                    <Ship className="w-5 h-5 text-primary" />
-                    <h2 className="text-lg font-semibold">In-Transit Shipments</h2>
-                    <Badge variant="secondary" className="bg-info/10 text-info">
-                      {inTransitShipments.length}
-                    </Badge>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Ship className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-semibold tracking-wide text-foreground">
+                        In-Transit Shipments
+                      </h2>
+                      <Badge
+                        variant="secondary"
+                        className="rounded-full bg-primary/10 text-primary text-xs font-medium px-2 py-0.5"
+                      >
+                        {inTransitShipments.length}
+                      </Badge>
+                    </div>
                   </div>
-                  {inTransitOpen ? (
-                    <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                  )}
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted text-muted-foreground"
+                    >
+                      <Search className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted text-muted-foreground"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                    {inTransitOpen ? (
+                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="p-4 pt-0">
+                  <div className="px-6 pb-6 pt-0">
                     <ShipmentTable data={inTransitShipments} gridId="in-transit-grid" activeFilter={activeFilter} />
-                    <div className="mt-4 text-center text-sm text-muted-foreground">
+                    <div className="mt-3 text-right text-xs text-muted-foreground">
                       Showing 1 to {inTransitShipments.length} of {inTransitShipments.length} shipments
                     </div>
                   </div>
@@ -155,14 +178,23 @@ const Index = () => {
 
             {/* Pending Shipments */}
             <Collapsible open={pendingOpen} onOpenChange={setPendingOpen}>
-              <div className="bg-card rounded-lg border border-border">
-                <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+              <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+                <CollapsibleTrigger className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/40 transition-colors">
                   <div className="flex items-center gap-3">
-                    <Ship className="w-5 h-5 text-warning" />
-                    <h2 className="text-lg font-semibold">Pending Shipments</h2>
-                    <Badge variant="secondary" className="bg-warning/10 text-warning">
-                      {pendingShipments.length}
-                    </Badge>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-warning/10 text-warning">
+                      <Ship className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-semibold tracking-wide text-foreground">
+                        Pending Shipments
+                      </h2>
+                      <Badge
+                        variant="secondary"
+                        className="rounded-full bg-warning/10 text-warning text-xs font-medium px-2 py-0.5"
+                      >
+                        {pendingShipments.length}
+                      </Badge>
+                    </div>
                   </div>
                   {pendingOpen ? (
                     <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -171,9 +203,9 @@ const Index = () => {
                   )}
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="p-4 pt-0">
+                  <div className="px-6 pb-6 pt-0">
                     <ShipmentTable data={pendingShipments} gridId="pending-grid" height={420} activeFilter={activeFilter} />
-                    <div className="mt-4 text-center text-sm text-muted-foreground">
+                    <div className="mt-3 text-right text-xs text-muted-foreground">
                       Showing 1 to {pendingShipments.length} of {pendingShipments.length} shipments
                     </div>
                   </div>
@@ -183,14 +215,23 @@ const Index = () => {
 
             {/* Completed Shipments */}
             <Collapsible open={completedOpen} onOpenChange={setCompletedOpen}>
-              <div className="bg-card rounded-lg border border-border">
-                <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+              <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+                <CollapsibleTrigger className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/40 transition-colors">
                   <div className="flex items-center gap-3">
-                    <Ship className="w-5 h-5 text-success" />
-                    <h2 className="text-lg font-semibold">Completed Shipments</h2>
-                    <Badge variant="secondary" className="bg-success/10 text-success">
-                      {completedShipments.length}
-                    </Badge>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 text-success">
+                      <Ship className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-semibold tracking-wide text-foreground">
+                        Completed Shipments
+                      </h2>
+                      <Badge
+                        variant="secondary"
+                        className="rounded-full bg-success/10 text-success text-xs font-medium px-2 py-0.5"
+                      >
+                        {completedShipments.length}
+                      </Badge>
+                    </div>
                   </div>
                   {completedOpen ? (
                     <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -199,9 +240,9 @@ const Index = () => {
                   )}
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="p-4 pt-0">
+                  <div className="px-6 pb-6 pt-0">
                     <ShipmentTable data={completedShipments} gridId="completed-grid" height={480} activeFilter={activeFilter} />
-                    <div className="mt-4 text-center text-sm text-muted-foreground">
+                    <div className="mt-3 text-right text-xs text-muted-foreground">
                       Showing 1 to {completedShipments.length} of {completedShipments.length} shipments
                     </div>
                   </div>
