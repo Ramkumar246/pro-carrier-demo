@@ -22,12 +22,6 @@ export interface Shipment {
   containers: number;
   costUsd: number;
   containerMode: ContainerMode;
-  carbonEmissions: number;
-}
-
-export interface ShipmentStatusGroups {
-  inTransit: Shipment[];
-  pending: Shipment[];
-  completed: Shipment[];
+  emissionCo2eKg?: number; // Total CO₂e emissions in kg (only for in-transit and completed shipments)
 }
 

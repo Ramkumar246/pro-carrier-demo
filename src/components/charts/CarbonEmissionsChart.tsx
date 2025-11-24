@@ -1,58 +1,183 @@
-import { useMemo } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import type { ShipmentStatusGroups } from "@/types/shipment";
+import { useEffect, useRef } from "react";
+import * as am5 from "@amcharts/amcharts5";
+import * as am5xy from "@amcharts/amcharts5/xy";
+import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+import { getCSSVariableColor } from "@/lib/chart-colors";
 
-const STATUS_CONFIG = [
-  { key: "inTransit" as const, label: "In Transit" },
-  { key: "pending" as const, label: "Pending" },
-  { key: "completed" as const, label: "Completed" },
+// Sample data for last 6 months - Spline graph with weight/emissions on Y-axis, months on X-axis
+// Values stay within 0-600 kg so we can highlight every 100 kg tick on the axis
+const data = [
+  { month: "Jul", sea: 420, road: 260, air: 220 },
+  { month: "Aug", sea: 460, road: 280, air: 240 },
+  { month: "Sep", sea: 520, road: 310, air: 260 },
+  { month: "Oct", sea: 480, road: 290, air: 240 },
+  { month: "Nov", sea: 550, road: 330, air: 270 },
+  { month: "Dec", sea: 510, road: 300, air: 250 },
 ];
 
-interface CarbonEmissionsChartProps {
-  shipmentGroups: ShipmentStatusGroups;
-}
+const CarbonEmissionsChart = () => {
+  const chartRef = useRef<am5xy.XYChart | null>(null);
+  const rootRef = useRef<am5.Root | null>(null);
 
-const CarbonEmissionsChart = ({ shipmentGroups }: CarbonEmissionsChartProps) => {
-  const data = useMemo(() => {
-    return STATUS_CONFIG.map(({ key, label }) => {
-      const shipments = shipmentGroups[key];
-      const total = shipments.reduce((sum, shipment) => sum + (shipment.carbonEmissions || 0), 0);
-      return { label, value: Number(total.toFixed(2)) };
-    }).filter((item) => item.value > 0);
-  }, [shipmentGroups]);
+  useEffect(() => {
+    const root = am5.Root.new("carbonEmissionsChart");
+    rootRef.current = root;
 
-  if (!data.length) {
-    return (
-      <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-        No emission data available.
-      </div>
+    root.setThemes([am5themes_Animated.new(root)]);
+    root._logo?.dispose();
+
+    // Get colors matching mockup - Sea (dark blue), Road (pink), Air (teal)
+    const seaColor = "#2b2a7a"; // Dark blue
+    const roadColor = "#f85a9d"; // Pink
+    const airColor = "#39c7c4"; // Teal
+    const cardColor = getCSSVariableColor("--card");
+    const borderColor = getCSSVariableColor("--border");
+    const foregroundColor = getCSSVariableColor("--foreground");
+    const axisLabelColor = getCSSVariableColor("--muted-foreground");
+
+    const chart = root.container.children.push(
+      am5xy.XYChart.new(root, {
+        panX: false,
+        panY: false,
+        wheelX: "panX",
+        wheelY: "zoomX",
+        layout: root.verticalLayout,
+      })
     );
-  }
+    chartRef.current = chart;
 
-  return (
-    <ResponsiveContainer width="100%" height={200}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-        <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "hsl(var(--card))",
-            border: "1px solid hsl(var(--border))",
-            borderRadius: "0.5rem",
-          }}
-          formatter={(value: number) => [`${value} tCO₂e`, "Emissions"]}
-        />
-        <Line
-          type="monotone"
-          dataKey="value"
-          stroke="hsl(var(--chart-1))"
-          strokeWidth={2}
-          dot={{ fill: "hsl(var(--chart-1))" }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
+    // X-axis: Months (last 6 months)
+    const xAxis = chart.xAxes.push(
+      am5xy.CategoryAxis.new(root, {
+        categoryField: "month",
+        renderer: am5xy.AxisRendererX.new(root, {
+          cellStartLocation: 0.1,
+          cellEndLocation: 0.9,
+          minGridDistance: 15,
+        }),
+      })
+    );
+
+    xAxis.get("renderer").labels.template.setAll({
+      fill: am5.color(axisLabelColor),
+      fontSize: 12,
+    });
+
+    // Y-axis: Weight/Emissions
+    const yAxisRenderer = am5xy.AxisRendererY.new(root, {
+      minGridDistance: 20,
+    });
+    const yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        renderer: yAxisRenderer,
+        min: 200,
+        max: 600,
+        strictMinMax: true,
+        numberFormat: "#' kg'",
+        extraMin: 0,
+        extraMax: 0,
+      })
+    );
+    yAxisRenderer.labels.template.setAll({
+      fill: am5.color(axisLabelColor),
+      fontSize: 12,
+    });
+    yAxis.set(
+      "numberFormatter",
+      am5.NumberFormatter.new(root, {
+        numberFormat: "#' kg'",
+      })
+    );
+
+    const createSeries = (name: string, field: keyof typeof data[number], color: string) => {
+      const valueField = field as keyof (typeof data)[number];
+
+      const series = chart.series.push(
+        am5xy.SmoothedXLineSeries.new(root, {
+          name,
+          xAxis: xAxis,
+          yAxis: yAxis,
+          valueYField: valueField as string,
+          categoryXField: "month",
+          stroke: am5.color(color),
+          fill: am5.color(color),
+          tooltip: am5.Tooltip.new(root, {
+            getFillFromSprite: false,
+            pointerOrientation: "horizontal",
+            labelText: `${name}: {valueY.formatNumber('#,###.##')} kg`,
+          }),
+        })
+      );
+
+      series.strokes.template.setAll({
+        strokeWidth: 2,
+      });
+
+      series.bullets.push(() => {
+        return am5.Bullet.new(root, {
+          sprite: am5.Circle.new(root, {
+            radius: 4,
+            fill: series.get("fill"),
+          }),
+        });
+      });
+      const tooltip = series.get("tooltip");
+      if (tooltip) {
+        tooltip.get("background")?.setAll({
+          fill: am5.color(cardColor),
+          fillOpacity: 1,
+          stroke: am5.color(borderColor),
+          strokeWidth: 1,
+        });
+        tooltip.label.setAll({
+          fill: am5.color(foregroundColor),
+          fontSize: 12,
+        });
+      }
+
+      return series;
+    };
+
+    // Create 3 spline series - Sea, Road, Air
+    const seaSeries = createSeries("Sea Mode", "sea", seaColor);
+    const roadSeries = createSeries("Road", "road", roadColor);
+    const airSeries = createSeries("Air", "air", airColor);
+
+    seaSeries.data.setAll(data);
+    roadSeries.data.setAll(data);
+    airSeries.data.setAll(data);
+    xAxis.data.setAll(data);
+    const cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
+    cursor.set("snapToSeries", [seaSeries, roadSeries, airSeries]);
+    cursor.get("tooltip")?.set("forceHidden", true);
+    cursor.lineX.setAll({ strokeOpacity: 0.1 });
+    cursor.lineY.setAll({ strokeOpacity: 0.1 });
+
+    // Add legend
+    const legend = chart.children.push(
+      am5.Legend.new(root, {
+        centerX: am5.p50,
+        x: am5.p50,
+        centerY: am5.p50,
+        layout: root.horizontalLayout,
+        marginTop: 5,
+        paddingTop: 5,
+      })
+    );
+    legend.data.setAll(chart.series.values);
+
+    // Enhanced animations with staggered timing
+    seaSeries.appear(1000, 100);
+    roadSeries.appear(1200, 100);
+    airSeries.appear(1400, 100);
+    chart.appear(1000, 100);
+
+    return () => {
+      root.dispose();
+    };
+  }, []);
+
+  return <div id="carbonEmissionsChart" style={{ width: "100%", height: "230px" }} />;
 };
 
 export default CarbonEmissionsChart;

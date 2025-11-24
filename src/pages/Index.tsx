@@ -32,20 +32,6 @@ const Index = () => {
     [activeFilter],
   );
 
-  const chartShipmentGroups = useMemo(
-    () => ({
-      inTransit: shipmentData.inTransit,
-      pending: shipmentData.pending,
-      completed: shipmentData.completed,
-    }),
-    [],
-  );
-
-  const chartShipmentsAll = useMemo(
-    () => [...chartShipmentGroups.inTransit, ...chartShipmentGroups.pending, ...chartShipmentGroups.completed],
-    [chartShipmentGroups],
-  );
-
   return (
     <div className="space-y-6">
           {/* Header */}
@@ -65,26 +51,26 @@ const Index = () => {
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 transition-all duration-500 ease-in-out">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
                 <DashboardCard title="Carbon Emissions">
-                  <CarbonEmissionsChart shipmentGroups={chartShipmentGroups} />
+                  <CarbonEmissionsChart />
                 </DashboardCard>
                 
                 <DashboardCard title="Shipment Volumes">
-                  <ShipmentVolumesChart shipmentGroups={chartShipmentGroups} />
+                  <ShipmentVolumesChart />
                 </DashboardCard>
                 
-                <DashboardCard title="Total Freight Weight">
-                  <FreightWeightChart shipmentGroups={chartShipmentGroups} />
+                <DashboardCard title="Total Freight Spend">
+                  <FreightWeightChart />
                 </DashboardCard>
 
-                <DashboardCard title="Shipment Model, Gross & Volume">
+                <DashboardCard title="Shipment Mode, Spend & Volume">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-2">By Model</p>
-                      <ShipmentDistributionChart type="model" shipments={chartShipmentsAll} />
+                      <p className="text-xs text-muted-foreground mb-2">Spend</p>
+                      <ShipmentDistributionChart type="spend" />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-2">By Volume</p>
-                      <ShipmentDistributionChart type="volume" shipments={chartShipmentsAll} />
+                      <p className="text-xs text-muted-foreground mb-2">Volume</p>
+                      <ShipmentDistributionChart type="volume" />
                     </div>
                   </div>
                 </DashboardCard>
@@ -101,26 +87,26 @@ const Index = () => {
             <div className="space-y-6 transition-all duration-500 ease-in-out">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <DashboardCard title="Carbon Emissions">
-                  <CarbonEmissionsChart shipmentGroups={chartShipmentGroups} />
+                  <CarbonEmissionsChart />
                 </DashboardCard>
                 
                 <DashboardCard title="Shipment Volumes">
-                  <ShipmentVolumesChart shipmentGroups={chartShipmentGroups} />
+                  <ShipmentVolumesChart />
                 </DashboardCard>
                 
-                <DashboardCard title="Total Freight Weight">
-                  <FreightWeightChart shipmentGroups={chartShipmentGroups} />
+                <DashboardCard title="Total Freight Spend">
+                  <FreightWeightChart />
                 </DashboardCard>
 
-                <DashboardCard title="Shipment Model, Gross & Volume">
+                <DashboardCard title="Shipment Mode, Spend & Volume">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-2">By Model</p>
-                      <ShipmentDistributionChart type="model" shipments={chartShipmentsAll} />
+                      <p className="text-xs text-muted-foreground mb-2">Spend</p>
+                      <ShipmentDistributionChart type="spend" />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-2">By Volume</p>
-                      <ShipmentDistributionChart type="volume" shipments={chartShipmentsAll} />
+                      <p className="text-xs text-muted-foreground mb-2">Volume</p>
+                      <ShipmentDistributionChart type="volume" />
                     </div>
                   </div>
                 </DashboardCard>
