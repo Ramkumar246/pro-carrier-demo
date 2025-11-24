@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import VesselMap from './VesselMap';
 import ShipmentSidebar from './ShipmentSidebar';
 import ContainerDetails from './ContainerDetails';
+import type { Shipment } from '@/types/shipment';
 
 interface Container {
   id: string;
@@ -24,7 +25,11 @@ interface SegmentData {
   travelTime: number;
 }
 
-const VesselFinderIndex = () => {
+interface VesselFinderIndexProps {
+  activeShipment?: Shipment | null;
+}
+
+const VesselFinderIndex: React.FC<VesselFinderIndexProps> = ({ activeShipment }) => {
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
   const [selectedVesselName, setSelectedVesselName] = useState<string>('');
   const [sidebarMode, setSidebarMode] = useState<'default' | 'supplier' | 'buyer'>('default');
@@ -57,6 +62,8 @@ const VesselFinderIndex = () => {
     setSelectedVesselName(vessel.name);
   };
 
+  const isAirMode = activeShipment?.transportMode === 'Air';
+
   return (
     <div className="flex h-screen bg-background">
       {selectedContainer ? (
@@ -71,10 +78,12 @@ const VesselFinderIndex = () => {
           onModeChange={setSidebarMode}
           segmentData={segmentData}
           voyageSummary={voyageSummary}
+          isAirMode={isAirMode}
         />
       )}
       <div className="flex-1 relative">
         <VesselMap
+          activeShipment={activeShipment}
           onContainerClick={handleContainerClick}
           onAddressViewChange={setSidebarMode}
           onSegmentDataChange={setSegmentData}

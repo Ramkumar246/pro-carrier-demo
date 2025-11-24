@@ -5,6 +5,7 @@ import type { Feature, LineString } from 'geojson';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import vesselIcon from '@/assets/vessel-finder/vessel-icon.png';
 import vesselImage from '@/assets/vessel-finder/vessel_image.jpg';
+import airIcon from '@/assets/vessel-finder/air.png';
 import { toast } from '@/hooks/use-toast';
 import portIcon from '@/assets/vessel-finder/port.png';
 import addressIcon from '@/assets/vessel-finder/address.png';
@@ -12,6 +13,8 @@ import truckPickupIcon from '@/assets/vessel-finder/truck-pickup.png';
 import truckDeliveryIcon from '@/assets/vessel-finder/truck-icon.png';
 import voyageRaw from '@/data/vessel-finder/voyage.txt?raw';
 import addressRaw from '@/data/vessel-finder/address.txt?raw';
+import airRaw from '@/data/vessel-finder/air.txt?raw';
+import type { Shipment } from '@/types/shipment';
 
 const dedupeTrackPoints = <T extends { coordinate: [number, number] }>(points: T[]) =>
   points.reduce<T[]>((acc, point) => {
@@ -98,7 +101,63 @@ interface VoyageFile {
   transport_tracks: TransportTrack[];
 }
 
+interface AirFlightResponse {
+  data?: {
+    flight_status?: string;
+    departure?: {
+      airport?: string;
+      timezone?: string;
+      iata?: string;
+      icao?: string;
+      terminal?: string;
+      gate?: string | null;
+      delay?: number | null;
+      scheduled?: string;
+      estimated?: string | null;
+      actual?: string | null;
+      estimated_runway?: string | null;
+      actual_runway?: string | null;
+    };
+    arrival?: {
+      airport?: string;
+      timezone?: string;
+      iata?: string;
+      icao?: string;
+      terminal?: string;
+      gate?: string | null;
+      baggage?: string | null;
+      delay?: number | null;
+      scheduled?: string;
+      estimated?: string | null;
+      actual?: string | null;
+    };
+    airline?: {
+      name?: string;
+      iata?: string;
+      icao?: string;
+    };
+    flight?: {
+      number?: string;
+      iata?: string;
+      icao?: string;
+    };
+    aircraft?: {
+      registration?: string;
+      iata?: string;
+      icao?: string;
+      icao24?: string;
+    };
+    live?: {
+      latitude?: number;
+      longitude?: number;
+    };
+  }[];
+}
+
 const voyageData = JSON.parse(voyageRaw) as VoyageFile;
+
+const airFlightData: AirFlightResponse = airRaw ? JSON.parse(airRaw) : {};
+const activeAirFlight = airFlightData.data?.[0];
 
 const normalizeVesselName = (name: string) =>
   name === 'MORTEN MAERSK' ? 'MAERSK' : name;
@@ -224,7 +283,18 @@ interface Container {
   weight: string;
 }
 
+interface AirCargo {
+  id: string;
+  label: string;
+  pieces: string;
+  weight: string;
+  volume?: string;
+  description?: string;
+  status?: string;
+}
+
 const DEFAULT_MAPBOX_TOKEN =
+  (import.meta as any)?.env?.VITE_MAPBOX_ACCESS_TOKEN ||
   'pk.eyJ1IjoiYXNoYTA0IiwiYSI6ImNtaHhiM3RtNjAwZm4ya3F6ZGRraHg2dm8ifQ.J9VI1lZY3LL8Nx6IXwLoVw';
 
 const vesselContainers: Container[] = [
@@ -245,6 +315,27 @@ const vesselContainers: Container[] = [
     number: 'ABN567890123',
     type: '40ft HC',
     weight: '26,300 kg',
+  },
+];
+
+const airCargos: AirCargo[] = [
+  {
+    id: 'cargo-001',
+    label: 'Cargo 001',
+    pieces: '1 pallet',
+    weight: '3,000 kg',
+    volume: '8.0 CBM',
+    description: 'Children book assortment',
+    status: 'Loaded',
+  },
+  {
+    id: 'cargo-002',
+    label: 'Cargo 002',
+    pieces: '2 pallets',
+    weight: '5,500 kg',
+    volume: '12.3 CBM',
+    description: 'Gift sets and promotional items',
+    status: 'Planned',
   },
 ];
 
@@ -451,11 +542,48 @@ interface VesselMapProps {
   onAddressViewChange?: (mode: 'default' | 'supplier' | 'buyer') => void;
   onSegmentDataChange?: (data: SegmentData | null) => void;
   onVoyageSummaryChange?: (summary: VoyageSummary) => void;
+  activeShipment?: Shipment | null;
 }
 
 const parsedAddresses = parseAddressFile(addressRaw ?? '');
 
-const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, onAddressViewChange, onSegmentDataChange, onVoyageSummaryChange }) => {
+const parseShipmentDate = (value: string | null | undefined): Date | null => {
+  if (!value) return null;
+  const parts = value.split('/');
+  if (parts.length !== 3) {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const [day, month, year] = parts.map((p) => Number(p));
+  if (!day || !month || !year) return null;
+  const d = new Date(year, month - 1, day);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
+const computeDateBasedProgress = (
+  departure: string | null | undefined,
+  arrival: string | null | undefined,
+): number => {
+  const start = parseShipmentDate(departure ?? null);
+  const end = parseShipmentDate(arrival ?? null);
+  if (!start || !end || start >= end) return 50; // fallback mid-route
+
+  const now = new Date();
+  const totalMs = end.getTime() - start.getTime();
+  const elapsedMs = now.getTime() - start.getTime();
+  if (elapsedMs <= 0) return 0;
+  if (elapsedMs >= totalMs) return 100;
+  return Math.max(0, Math.min(100, (elapsedMs / totalMs) * 100));
+};
+
+const VesselMap: React.FC<VesselMapProps> = ({
+  onVesselClick,
+  onContainerClick,
+  onAddressViewChange,
+  onSegmentDataChange,
+  onVoyageSummaryChange,
+  activeShipment,
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [selectedVessel, setSelectedVessel] = useState<VesselData | null>(null);
@@ -464,6 +592,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
   const [isTokenSet, setIsTokenSet] = useState<boolean>(true);
   const [expandedVessel, setExpandedVessel] = useState<string | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [isMapReady, setIsMapReady] = useState<boolean>(false);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const vesselMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
   const routeMarkersRef = useRef<{ [key: string]: mapboxgl.Marker[] }>({});
@@ -507,6 +636,40 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
   });
   const [simulationIndex, setSimulationIndex] = useState<number>(initialSimulationIndex);
   const simulationTime = trackTimeSeries[simulationIndex]?.time ?? null;
+  const planeMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const airRouteRef = useRef<Feature<LineString> | null>(null);
+  const hasShownAirToastRef = useRef<boolean>(false);
+  const [selectedAirCargoId, setSelectedAirCargoId] = useState<string | null>(
+    airCargos[0]?.id ?? null,
+  );
+
+  const isAirMode = activeShipment?.transportMode === 'Air';
+  const isRoadMode = activeShipment?.transportMode === 'Road';
+
+  const airFlight = activeAirFlight;
+  const airDeparture = airFlight?.departure;
+  const airArrival = airFlight?.arrival;
+  const airAirline = airFlight?.airline;
+  const airFlightInfo = airFlight?.flight;
+  const airDepartureLabel =
+    airDeparture?.iata
+      ? `${airDeparture.airport ?? ''} (${airDeparture.iata})`
+      : airDeparture?.airport;
+  const airArrivalLabel =
+    airArrival?.iata
+      ? `${airArrival.airport ?? ''} (${airArrival.iata})`
+      : airArrival?.airport;
+
+  const formatFlightTime = (iso?: string | null) => {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    const day = d.getUTCDate().toString().padStart(2, '0');
+    const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+    const hours = d.getUTCHours().toString().padStart(2, '0');
+    const mins = d.getUTCMinutes().toString().padStart(2, '0');
+    return `${day}/${month} ${hours}:${mins} UTC`;
+  };
 
   const geocodeAddress = useCallback(
     async (address: ParsedAddress): Promise<[number, number] | undefined> => {
@@ -528,6 +691,56 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
       return undefined;
     },
     [mapboxToken]
+  );
+
+  const geocodePlace = useCallback(
+    async (place: string): Promise<[number, number] | undefined> => {
+      if (!mapboxToken) return undefined;
+      const trimmed = place.trim();
+      if (!trimmed) return undefined;
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        trimmed,
+      )}.json?limit=1&access_token=${mapboxToken}`;
+      const response = await fetch(url);
+      if (!response.ok) return undefined;
+      const data = await response.json();
+      const [lng, lat] = data.features?.[0]?.center ?? [];
+      if (typeof lng === 'number' && typeof lat === 'number') {
+        return [lng, lat];
+      }
+      return undefined;
+    },
+    [mapboxToken],
+  );
+
+  const reverseGeocodeCountryName = useCallback(
+    async (coord: [number, number]): Promise<string | undefined> => {
+      if (!mapboxToken) return undefined;
+      const [lng, lat] = coord;
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=country&limit=1&access_token=${mapboxToken}`;
+      const response = await fetch(url);
+      if (!response.ok) return undefined;
+      const data = await response.json();
+      const feature = data.features?.[0];
+      if (!feature) return undefined;
+
+      const directCode =
+        (feature.properties?.short_code as string | undefined) ||
+        ((feature as any).short_code as string | undefined) ||
+        undefined;
+
+      const contextCountry = (feature.context || []).find(
+        (c: any) => typeof c.id === 'string' && c.id.startsWith('country.'),
+      );
+      const contextCode =
+        (contextCountry?.short_code as string | undefined) ||
+        (contextCountry?.properties?.short_code as string | undefined) ||
+        undefined;
+
+      const code = (directCode || contextCode || '').toUpperCase();
+      return code || undefined;
+    },
+    [mapboxToken],
   );
 
   const fetchDirections = useCallback(
@@ -593,14 +806,18 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
 
   // Default the selected vessel to the primary voyage vessel once so the sidebar is initially populated
   useEffect(() => {
+    if (isAirMode) {
+      setSelectedVessel(null);
+      return;
+    }
     if (!hasInitializedSelectedVesselRef.current && !selectedVessel && vessels[0]) {
       setSelectedVessel(vessels[0]);
       hasInitializedSelectedVesselRef.current = true;
     }
-  }, [selectedVessel, vessels]);
+  }, [selectedVessel, vessels, isAirMode]);
 
   useEffect(() => {
-    if (!onVoyageSummaryChange || !primaryTrack) return;
+    if (!onVoyageSummaryChange || !primaryTrack || isAirMode) return;
 
     const portcalls = primaryTrack.portcalls ?? [];
     const lastVisited = [...portcalls]
@@ -747,7 +964,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
     };
 
     onVoyageSummaryChange(summary);
-  }, [onVoyageSummaryChange, primaryTrack, vesselContainers.length]);
+  }, [onVoyageSummaryChange, primaryTrack, vesselContainers.length, isAirMode]);
 
   // Initialize progress state from vessels data
   useEffect(() => {
@@ -1678,6 +1895,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
     });
 
     map.current.on('load', () => {
+      setIsMapReady(true);
       // Update country label colors to white for visibility
       const labelLayers = [
         'country-label',
@@ -1714,7 +1932,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
         type: 'fill',
         source: 'countries',
         'source-layer': 'country_boundaries',
-        filter: ['==', 'iso_3166_1_alpha_3', 'CHN'],
+        filter: ['==', 'iso_3166_1', ''],
         paint: {
           'fill-color': '#5E4FA2',  // Deep purple like isochrone demo
           'fill-opacity': 0.25
@@ -1727,7 +1945,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
         type: 'line',
         source: 'countries',
         'source-layer': 'country_boundaries',
-        filter: ['==', 'iso_3166_1_alpha_3', 'CHN'],
+        filter: ['==', 'iso_3166_1', ''],
         paint: {
           'line-color': '#9E75F0',  // Lighter purple border
           'line-width': 2,
@@ -1742,7 +1960,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
         type: 'fill',
         source: 'countries',
         'source-layer': 'country_boundaries',
-        filter: ['==', 'iso_3166_1_alpha_3', 'GBR'],
+        filter: ['==', 'iso_3166_1', ''],
         paint: {
           'fill-color': '#3182CE',  // Professional blue like isochrone demo
           'fill-opacity': 0.25
@@ -1755,7 +1973,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
         type: 'line',
         source: 'countries',
         'source-layer': 'country_boundaries',
-        filter: ['==', 'iso_3166_1_alpha_3', 'GBR'],
+        filter: ['==', 'iso_3166_1', ''],
         paint: {
           'line-color': '#63B3ED',  // Lighter blue border
           'line-width': 2,
@@ -1764,8 +1982,10 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
         }
       });
 
-      addVesselMarkers();
-      updateVesselRoutes();
+      if (!isAirMode && !isRoadMode) {
+        addVesselMarkers();
+        updateVesselRoutes();
+      }
       
       // Animate dash arrays for predicted routes
       let dashArraySequence = [
@@ -1795,13 +2015,15 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
       };
       
       // Start animation
-      if (dashAnimationRef.current) {
-        clearInterval(dashAnimationRef.current);
+      if (!isAirMode && !isRoadMode) {
+        if (dashAnimationRef.current) {
+          clearInterval(dashAnimationRef.current);
+        }
+        dashAnimationRef.current = window.setInterval(animateDashArray, 100);
       }
-      dashAnimationRef.current = window.setInterval(animateDashArray, 100);
       
-      // Add 3D buildings layer if in 3D view
-      if (is3DView) {
+      // Add 3D buildings layer if in 3D view (Sea-only here; Road adds its own 3D)
+      if (is3DView && !isAirMode && !isRoadMode) {
         add3DBuildingsLayer();
       }
     });
@@ -1920,17 +2142,8 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
       map.current?.remove();
     };
   }, [
-    isTokenSet, 
-    mapboxToken, 
-    navigationMode, 
-    addressLocations, 
-    addressRoutes, 
-    originCoordinate, 
-    destinationCoordinate,
-    switchToStreetView,
-    animateTruckAlongRoute,
-    onSegmentDataChange,
-    onAddressViewChange,
+    isTokenSet,
+    mapboxToken,
   ]);
 
   // Update routes when expandedVessel changes
@@ -1976,6 +2189,319 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vesselProgress]);
 
+  // Build and render an air route for active air shipments
+  useEffect(() => {
+    if (!map.current || !mapboxToken || !isMapReady) return;
+
+    if (!isAirMode) {
+      // Clean up any existing air route/marker when leaving air mode
+      if (map.current.getLayer('air-route-line')) {
+        map.current.removeLayer('air-route-line');
+      }
+      if (map.current.getSource('air-route')) {
+        map.current.removeSource('air-route');
+      }
+      if (map.current.getLayer('air-route-points')) {
+        map.current.removeLayer('air-route-points');
+      }
+      if (map.current.getSource('air-route-points')) {
+        map.current.removeSource('air-route-points');
+      }
+      if (planeMarkerRef.current) {
+        planeMarkerRef.current.remove();
+        planeMarkerRef.current = null;
+      }
+      airRouteRef.current = null;
+      hasShownAirToastRef.current = false;
+
+      // Re-apply Sea-mode origin/destination country highlighting when not in Air mode
+      const seaOriginCountry = originPortCode.slice(0, 2).toUpperCase();
+      const seaDestCountry = destinationPortCode.slice(0, 2).toUpperCase();
+
+      if (map.current.getLayer('country-pol')) {
+        map.current.setFilter('country-pol', ['==', 'iso_3166_1', seaOriginCountry]);
+      }
+      if (map.current.getLayer('country-pol-border')) {
+        map.current.setFilter('country-pol-border', ['==', 'iso_3166_1', seaOriginCountry]);
+      }
+      if (map.current.getLayer('country-pod')) {
+        map.current.setFilter('country-pod', ['==', 'iso_3166_1', seaDestCountry]);
+      }
+      if (map.current.getLayer('country-pod-border')) {
+        map.current.setFilter('country-pod-border', ['==', 'iso_3166_1', seaDestCountry]);
+      }
+
+      // eslint-disable-next-line no-console
+      console.log('[SEA] country highlights applied', { seaOriginCountry, seaDestCountry });
+
+      return;
+    }
+
+    const airFlight = activeAirFlight;
+    if (!airFlight) return;
+
+    const dep = airFlight.departure ?? {};
+    const arr = airFlight.arrival ?? {};
+    const originText = dep.iata ? `${dep.iata} airport` : dep.airport ?? '';
+    const destText = arr.iata ? `${arr.iata} airport` : arr.airport ?? '';
+    if (!originText || !destText) return;
+
+    // Debug: verify Air effect is running and we have valid origin/destination labels
+    // eslint-disable-next-line no-console
+    console.log('[AIR] effect active', {
+      isAirMode,
+      isMapReady,
+      hasMap: !!map.current,
+      originText,
+      destText,
+    });
+
+    let cancelled = false;
+
+    const setup = async () => {
+      try {
+        if (!map.current) return;
+
+        // eslint-disable-next-line no-console
+        console.log('[AIR] setup start', { originText, destText });
+
+        let originCoord = await geocodePlace(originText);
+        let destCoord = await geocodePlace(destText);
+
+        if (cancelled || !map.current) return;
+
+        // For the current demo flight YVR → LHR, always override to the precise coordinates
+        const depIata = airFlight.departure?.iata?.toUpperCase();
+        const arrIata = airFlight.arrival?.iata?.toUpperCase();
+        if (depIata === 'YVR' && arrIata === 'LHR') {
+          // Vancouver International (YVR): 49.1935° N, 123.1840° W
+          originCoord = [-123.1840, 49.1935];
+          // London Heathrow (LHR/EGLL): 51.4706° N, 0.4619° W
+          destCoord = [-0.4619, 51.4706];
+        }
+
+        if (cancelled || !map.current || !originCoord || !destCoord) return;
+
+        // eslint-disable-next-line no-console
+        console.log('[AIR] coordinates resolved', { originCoord, destCoord });
+
+        let [originCountry, destCountry] = await Promise.all([
+          reverseGeocodeCountryName(originCoord),
+          reverseGeocodeCountryName(destCoord),
+        ]);
+
+        // For the current demo flight YVR → LHR, force the correct country codes
+        if (depIata === 'YVR') {
+          originCountry = 'CA';
+        }
+        if (arrIata === 'LHR') {
+          destCountry = 'GB';
+        }
+
+        const midLng = (originCoord[0] + destCoord[0]) / 2;
+        const midLat = (originCoord[1] + destCoord[1]) / 2 + 25; // lift for arc (more pronounced curve)
+        const controlPoint: [number, number] = [midLng, midLat];
+
+        // Prefer a great-circle style arc when available, fallback to Bezier with a lifted control point
+        let curved: Feature<LineString>;
+        if ((turf as any).greatCircle) {
+          const gc = (turf as any).greatCircle(
+            turf.point(originCoord),
+            turf.point(destCoord),
+            { npoints: 128 },
+          ) as Feature<LineString>;
+          curved = gc;
+        } else {
+          const baseLine = turf.lineString([
+            originCoord,
+            controlPoint,
+            destCoord,
+          ]);
+          curved = (turf as any).bezierSpline
+            ? ((turf as any).bezierSpline(baseLine) as Feature<LineString>)
+            : baseLine;
+        }
+
+        airRouteRef.current = curved;
+
+        if (map.current.getSource('air-route')) {
+          (map.current.getSource('air-route') as mapboxgl.GeoJSONSource).setData(
+            curved as any,
+          );
+        } else {
+          map.current.addSource('air-route', {
+            type: 'geojson',
+            data: curved,
+          });
+        }
+
+        if (!map.current.getLayer('air-route-line')) {
+          map.current.addLayer({
+            id: 'air-route-line',
+            type: 'line',
+            source: 'air-route',
+            layout: {
+              'line-cap': 'round',
+              'line-join': 'round',
+            },
+            paint: {
+              'line-color': '#facc15',
+              'line-width': 3,
+              'line-opacity': 0.95,
+              'line-blur': 1.1,
+            },
+          });
+        }
+
+        const pointFeatures = {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: originCoord },
+              properties: { type: 'origin' },
+            },
+            {
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: destCoord },
+              properties: { type: 'destination' },
+            },
+          ],
+        } as any;
+
+        if (map.current.getSource('air-route-points')) {
+          (map.current.getSource('air-route-points') as mapboxgl.GeoJSONSource).setData(
+            pointFeatures,
+          );
+        } else {
+          map.current.addSource('air-route-points', {
+            type: 'geojson',
+            data: pointFeatures,
+          });
+        }
+
+        if (!map.current.getLayer('air-route-points')) {
+          map.current.addLayer({
+            id: 'air-route-points',
+            type: 'circle',
+            source: 'air-route-points',
+            paint: {
+              'circle-radius': 5,
+              'circle-color': '#f97316',
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#0f172a',
+            },
+          });
+        }
+
+        const bounds = new mapboxgl.LngLatBounds();
+        curved.geometry.coordinates.forEach((coord) => {
+          bounds.extend(coord as [number, number]);
+        });
+        map.current.fitBounds(bounds, {
+          padding: { top: 80, bottom: 80, left: 80, right: 80 },
+          duration: 1000,
+        });
+
+        // eslint-disable-next-line no-console
+        console.log('[AIR] fitBounds applied');
+
+        let planeCoord: [number, number] = originCoord;
+        const liveLat = airFlight.live?.latitude;
+        const liveLng = airFlight.live?.longitude;
+
+        if (typeof liveLat === 'number' && typeof liveLng === 'number') {
+          planeCoord = [liveLng, liveLat];
+        } else {
+          const progress = computeDateBasedProgress(
+            airFlight.departure?.scheduled ?? null,
+            airFlight.arrival?.scheduled ?? null,
+          );
+
+          const total = turf.length(curved, { units: 'kilometers' });
+          if (total > 0) {
+            const distanceAlong = (progress / 100) * total;
+            const point = turf.along(curved, distanceAlong, { units: 'kilometers' });
+            const [lng, lat] = point.geometry.coordinates;
+            planeCoord = [lng, lat];
+          }
+        }
+
+        // eslint-disable-next-line no-console
+        console.log('[AIR] plane coordinate chosen', { planeCoord, liveLat, liveLng });
+
+        const planeEl = createMarkerElement(airIcon, { width: 56, height: 56 });
+        if (planeMarkerRef.current) {
+          planeMarkerRef.current.setLngLat(planeCoord as [number, number]);
+        } else {
+          planeMarkerRef.current = new mapboxgl.Marker({
+            element: planeEl,
+            anchor: 'center',
+          })
+            .setLngLat(planeCoord as [number, number])
+            .addTo(map.current);
+        }
+
+        // Dynamically highlight origin/destination countries for Air shipments
+        if (originCountry || destCountry) {
+          if (originCountry) {
+            if (map.current.getLayer('country-pol')) {
+              map.current.setFilter('country-pol', ['==', 'iso_3166_1', originCountry]);
+            }
+            if (map.current.getLayer('country-pol-border')) {
+              map.current.setFilter('country-pol-border', [
+                '==',
+                'iso_3166_1',
+                originCountry,
+              ]);
+            }
+          }
+          if (destCountry) {
+            if (map.current.getLayer('country-pod')) {
+              map.current.setFilter('country-pod', ['==', 'iso_3166_1', destCountry]);
+            }
+            if (map.current.getLayer('country-pod-border')) {
+              map.current.setFilter('country-pod-border', [
+                '==',
+                'iso_3166_1',
+                destCountry,
+              ]);
+            }
+          }
+        }
+
+        // eslint-disable-next-line no-console
+        console.log('[AIR] country highlights applied', { originCountry, destCountry });
+
+        if (!hasShownAirToastRef.current) {
+          toast({
+            title: 'Simulated air tracking',
+            description:
+              'Air shipment progress is estimated from ETD/ETA dates and does not use real-time GPS coordinates.',
+          });
+          hasShownAirToastRef.current = true;
+        }
+      } catch (error) {
+        // Fail silently for now, just log for debugging
+        // eslint-disable-next-line no-console
+        console.error('Failed to render air route', error);
+      }
+    };
+
+    setup();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeShipment,
+    geocodePlace,
+    isAirMode,
+    mapboxToken,
+    reverseGeocodeCountryName,
+    isMapReady,
+  ]);
+
   // Move vessel marker along the voyage time series when the time slider changes
   useEffect(() => {
     if (!map.current || !trackTimeSeries.length) return;
@@ -1987,13 +2513,260 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
 
     const clampedIndex = Math.min(
       Math.max(simulationIndex, 0),
-      trackTimeSeries.length - 1
+      trackTimeSeries.length - 1,
     );
     const point = trackTimeSeries[clampedIndex];
     if (!point) return;
 
     marker.setLngLat(point.coord);
   }, [simulationIndex, vessels]);
+
+  // Build and render a dedicated road route (Germany → France) for Road shipments
+  useEffect(() => {
+    if (!map.current || !mapboxToken || !isMapReady) return;
+
+    if (!isRoadMode) {
+      // eslint-disable-next-line no-console
+      console.log('[ROAD] leaving road mode, cleaning up any existing road route');
+      // Clean up any existing road route when leaving Road mode
+      if (map.current.getLayer('road-route-line')) {
+        map.current.removeLayer('road-route-line');
+      }
+      if (map.current.getLayer('road-route-outline')) {
+        map.current.removeLayer('road-route-outline');
+      }
+      if (map.current.getSource('road-route')) {
+        map.current.removeSource('road-route');
+      }
+      if (map.current.getLayer('road-route-origin')) {
+        map.current.removeLayer('road-route-origin');
+      }
+      if (map.current.getSource('road-route-origin')) {
+        map.current.removeSource('road-route-origin');
+      }
+      if (map.current.getLayer('road-route-destination')) {
+        map.current.removeLayer('road-route-destination');
+      }
+      if (map.current.getSource('road-route-destination')) {
+        map.current.removeSource('road-route-destination');
+      }
+
+      return;
+    }
+
+    let cancelled = false;
+
+    const setupRoadRoute = async () => {
+      try {
+        if (!map.current) return;
+
+        // eslint-disable-next-line no-console
+        console.log('[ROAD] setupRoadRoute start', { isRoadMode, isMapReady, hasMap: !!map.current });
+
+        // Approximate Germany → France route using Berlin → Paris
+        const germanyCoord: [number, number] = [13.405, 52.52]; // Berlin
+        const franceCoord: [number, number] = [2.3522, 48.8566]; // Paris
+
+        const routeFeature = await fetchDirections(germanyCoord, franceCoord);
+        if (!routeFeature || cancelled || !map.current) return;
+
+        // eslint-disable-next-line no-console
+        console.log('[ROAD] directions fetched', {
+          pointCount: routeFeature.geometry.coordinates.length,
+        });
+
+        if (map.current.getSource('road-route')) {
+          (map.current.getSource('road-route') as mapboxgl.GeoJSONSource).setData(
+            routeFeature as any,
+          );
+        } else {
+          map.current.addSource('road-route', {
+            type: 'geojson',
+            data: routeFeature,
+          });
+        }
+
+        if (!map.current.getLayer('road-route-outline')) {
+          map.current.addLayer({
+            id: 'road-route-outline',
+            type: 'line',
+            source: 'road-route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round',
+            },
+            paint: {
+              'line-color': '#020617',
+              'line-width': 6,
+              'line-opacity': 0.85,
+            },
+          });
+        }
+
+        if (!map.current.getLayer('road-route-line')) {
+          map.current.addLayer({
+            id: 'road-route-line',
+            type: 'line',
+            source: 'road-route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round',
+            },
+            paint: {
+              'line-color': '#22c55e',
+              'line-width': 4,
+              'line-opacity': 0.95,
+            },
+          });
+        }
+
+        const originPoint = {
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: germanyCoord },
+          properties: {},
+        };
+        const destinationPoint = {
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: franceCoord },
+          properties: {},
+        };
+
+        if (map.current.getSource('road-route-origin')) {
+          (map.current.getSource('road-route-origin') as mapboxgl.GeoJSONSource).setData(
+            originPoint as any,
+          );
+        } else {
+          map.current.addSource('road-route-origin', {
+            type: 'geojson',
+            data: originPoint,
+          });
+        }
+
+        if (!map.current.getLayer('road-route-origin')) {
+          map.current.addLayer({
+            id: 'road-route-origin',
+            type: 'circle',
+            source: 'road-route-origin',
+            paint: {
+              'circle-radius': 6,
+              'circle-color': '#38bdf8',
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#0f172a',
+            },
+          });
+        }
+
+        if (map.current.getSource('road-route-destination')) {
+          (map.current.getSource('road-route-destination') as mapboxgl.GeoJSONSource).setData(
+            destinationPoint as any,
+          );
+        } else {
+          map.current.addSource('road-route-destination', {
+            type: 'geojson',
+            data: destinationPoint,
+          });
+        }
+
+        if (!map.current.getLayer('road-route-destination')) {
+          map.current.addLayer({
+            id: 'road-route-destination',
+            type: 'circle',
+            source: 'road-route-destination',
+            paint: {
+              'circle-radius': 6,
+              'circle-color': '#f97316',
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#0f172a',
+            },
+          });
+        }
+
+        const bounds = new mapboxgl.LngLatBounds();
+        routeFeature.geometry.coordinates.forEach((coord) => {
+          bounds.extend(coord as [number, number]);
+        });
+
+        // First fit the whole road corridor for context
+        map.current.fitBounds(bounds, {
+          padding: { top: 80, bottom: 80, left: 80, right: 80 },
+          duration: 800,
+          maxZoom: 7,
+        });
+
+        // Highlight Germany (DE) and France (FR) for Road corridor
+        if (map.current.getLayer('country-pol')) {
+          map.current.setFilter('country-pol', ['==', 'iso_3166_1', 'DE']);
+        }
+        if (map.current.getLayer('country-pol-border')) {
+          map.current.setFilter('country-pol-border', ['==', 'iso_3166_1', 'DE']);
+        }
+        if (map.current.getLayer('country-pod')) {
+          map.current.setFilter('country-pod', ['==', 'iso_3166_1', 'FR']);
+        }
+        if (map.current.getLayer('country-pod-border')) {
+          map.current.setFilter('country-pod-border', ['==', 'iso_3166_1', 'FR']);
+        }
+
+        // Hide existing sea vessel routes/markers so Road view is clean
+        vessels.forEach((vessel) => {
+          ['historic', 'historic-glow', 'historic-points', 'predicted', 'predicted-glow', 'predicted-points', 'tracking', 'delivery-route', 'pickup-nav', 'pickup-nav-glow', 'delivery-nav', 'delivery-nav-glow'].forEach((suffix) => {
+            const layerId = `${suffix}-${vessel.id}`;
+            if (map.current?.getLayer(layerId)) {
+              map.current.setLayoutProperty(layerId, 'visibility', 'none');
+            }
+          });
+        });
+        markersRef.current.forEach((marker) => {
+          const element = marker.getElement();
+          if (element) element.style.display = 'none';
+        });
+
+        // Enable a cinematic 3D view focused on the road corridor
+        if (!map.current.getSource('mapbox-dem')) {
+          map.current.addSource('mapbox-dem', {
+            type: 'raster-dem',
+            url: 'mapbox://mapbox.terrain-rgb',
+            tileSize: 512,
+            maxzoom: 14,
+          });
+        }
+        map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.6 });
+        add3DBuildingsLayer();
+        if (!is3DView) {
+          setIs3DView(true);
+        }
+
+        // Then zoom in and tilt into a focused 3D view on the road corridor center
+        const center = bounds.getCenter();
+        map.current.easeTo({
+          center: [center.lng, center.lat],
+          zoom: 5.5,
+          pitch: 60,
+          bearing: -25,
+          duration: 1600,
+          easing: (t) => t * (2 - t),
+        });
+
+        // eslint-disable-next-line no-console
+        console.log('[ROAD] camera adjusted to road corridor and 3D view applied');
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to render road route', error);
+      }
+    };
+
+    setupRoadRoute();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isRoadMode,
+    mapboxToken,
+    isMapReady,
+    fetchDirections,
+    add3DBuildingsLayer,
+  ]);
 
   const calculateVesselPosition = (vessel: VesselData, customProgress?: number): [number, number] => {
     const combinedTrack = dedupeSequentialCoordinates([
@@ -2117,6 +2890,11 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
   }
 
   function updateVesselRoutes() {
+    // Do not adjust sea routes or camera when in Air or Road modes
+    if (isAirMode || isRoadMode) {
+      return;
+    }
+
     if (!map.current || !map.current.isStyleLoaded()) {
       if (map.current) {
         map.current.once('style.load', () => {
@@ -2975,7 +3753,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
           )}
 
           {/* Demurrage alerts banner */}
-          {showDemurrageBanner && demurrageAlertStep > 0 && (
+          {!isAirMode && !isRoadMode && showDemurrageBanner && demurrageAlertStep > 0 && (
             <div className="absolute top-6 left-6 z-10 max-w-xl w-[calc(100%-3rem)] bg-slate-950/85 border border-amber-500/60 rounded-lg px-4 py-3 shadow-lg flex items-start gap-3 backdrop-blur-md">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -3021,7 +3799,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
           )}
 
           {/* Minimal Navigation Close Control */}
-          {navigationMode && (
+          {!isAirMode && !isRoadMode && navigationMode && (
             <>
               <button
                 onClick={() => {
@@ -3151,7 +3929,7 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
           )}
 
           {/* Voyage time slider (clock control) */}
-          {trackTimeSeries.length > 1 && (
+          {!isAirMode && !isRoadMode && trackTimeSeries.length > 1 && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-slate-950/80 border border-slate-700/60 rounded-xl shadow-lg px-4 py-2 flex items-center gap-3 min-w-[280px] max-w-xl backdrop-blur-md">
               <div className="flex items-center gap-1 text-[11px] text-slate-100 whitespace-nowrap">
                 <svg
@@ -3188,8 +3966,176 @@ const VesselMap: React.FC<VesselMapProps> = ({ onVesselClick, onContainerClick, 
         </>
       )}
       
+      {/* Air shipment summary (Air mode from shipments grid) */}
+      {isAirMode && activeShipment && (
+        <div className="absolute top-6 right-6 bg-slate-950/90 text-slate-100 rounded-xl shadow-xl border border-slate-800 p-4 z-20 w-80 max-h-[48vh] overflow-hidden flex flex-col backdrop-blur-md">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-sky-900/70 flex items-center justify-center border border-sky-500/60">
+                <span className="text-sky-300 text-lg">✈</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-50 leading-snug">
+                  {airAirline?.name || 'Airline'}
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  {airFlightInfo?.iata || airFlightInfo?.icao || airFlightInfo?.number || activeShipment.route}
+                </p>
+              </div>
+            </div>
+            {airFlight?.flight_status && (
+              <span className="rounded-full bg-sky-900/70 border border-sky-500/60 px-2 py-0.5 text-[10px] uppercase tracking-wide text-sky-100 whitespace-nowrap">
+                {airFlight.flight_status}
+              </span>
+            )}
+          </div>
+
+          <div className="text-[11px] text-slate-300 space-y-1.5">
+            <p className="text-slate-200">
+              {airDepartureLabel || 'Origin'} <span className="mx-1">→</span>
+              {airArrivalLabel || 'Destination'}
+            </p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <div>
+                <p className="text-slate-500 uppercase tracking-wide text-[10px] mb-0.5">Departure</p>
+                <p>{formatFlightTime(airDeparture?.scheduled ?? null)}</p>
+                {airDeparture?.terminal && (
+                  <p className="text-slate-500 mt-0.5">Terminal {airDeparture.terminal}</p>
+                )}
+                {airDeparture?.gate && (
+                  <p className="text-slate-500">Gate {airDeparture.gate}</p>
+                )}
+                {typeof airDeparture?.delay === 'number' && airDeparture.delay > 0 && (
+                  <p className="text-amber-400 mt-0.5">Delay {airDeparture.delay} min</p>
+                )}
+              </div>
+              <div>
+                <p className="text-slate-500 uppercase tracking-wide text-[10px] mb-0.5">Arrival</p>
+                <p>{formatFlightTime(airArrival?.scheduled ?? null)}</p>
+                {airArrival?.terminal && (
+                  <p className="text-slate-500 mt-0.5">Terminal {airArrival.terminal}</p>
+                )}
+                {airArrival?.gate && (
+                  <p className="text-slate-500">Gate {airArrival.gate}</p>
+                )}
+                {typeof airArrival?.delay === 'number' && airArrival.delay > 0 && (
+                  <p className="text-amber-400 mt-0.5">Delay {airArrival.delay} min</p>
+                )}
+              </div>
+            </div>
+            {airFlight?.aircraft && (
+              <p className="pt-0.5">
+                <span className="text-slate-500 uppercase tracking-wide text-[10px] mr-1">Aircraft</span>
+                <span>
+                  {airFlight.aircraft.iata || airFlight.aircraft.icao || 'Aircraft'}
+                  {airFlight.aircraft.registration ? ` ${airFlight.aircraft.registration}` : ''}
+                </span>
+              </p>
+            )}
+          </div>
+
+          <div className="mt-3 border-t border-slate-800/70 pt-2">
+            <p className="text-[11px] text-slate-500 uppercase tracking-wide mb-1">Cargo</p>
+            <ul className="space-y-0.5 text-[12px] text-slate-200">
+              {airCargos.map((cargo) => {
+                const isSelected = cargo.id === selectedAirCargoId;
+                return (
+                  <li key={cargo.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAirCargoId(cargo.id)}
+                      className={`w-full flex items-center gap-2 rounded-lg px-2 py-1 text-left border transition-colors ${
+                        isSelected
+                          ? 'bg-sky-900/80 border-sky-500/70 text-sky-100'
+                          : 'bg-slate-900/60 border-slate-700/70 hover:bg-slate-800'
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold truncate text-[12px]">{cargo.label}</p>
+                        {cargo.description && (
+                          <p className="text-[11px] text-slate-300 truncate">
+                            {cargo.description}
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {(() => {
+              const selected = airCargos.find((c) => c.id === selectedAirCargoId) ?? airCargos[0];
+              if (!selected) return null;
+              return (
+                <div className="mt-2 rounded-lg border border-slate-800 bg-slate-950/70 px-2.5 py-2 text-[11px] text-slate-200">
+                  <p className="font-semibold text-slate-50 mb-0.5">{selected.label}</p>
+                  <p className="text-slate-300">
+                    {selected.pieces}
+                    {selected.weight ? ` • ${selected.weight}` : ''}
+                    {selected.volume ? ` • ${selected.volume}` : ''}
+                  </p>
+                  {selected.description && (
+                    <p className="text-slate-400 mt-0.5">{selected.description}</p>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {isRoadMode && activeShipment && (
+        <div className="absolute top-6 right-6 bg-slate-950/90 text-slate-100 rounded-xl shadow-xl border border-slate-800 p-4 z-20 w-80 max-h-[48vh] overflow-hidden flex flex-col backdrop-blur-md">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-900/70 flex items-center justify-center border border-emerald-500/60">
+                <span className="text-emerald-300 text-lg">🚚</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-50 leading-snug">
+                  Road Freight
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  {activeShipment.route || 'Germany  France'}
+                </p>
+              </div>
+            </div>
+            {activeShipment.status && (
+              <span className="rounded-full bg-emerald-900/70 border border-emerald-500/60 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-100 whitespace-nowrap">
+                {activeShipment.status}
+              </span>
+            )}
+          </div>
+
+          <div className="text-[11px] text-slate-300 space-y-1.5">
+            <p className="text-slate-200">
+              {(activeShipment.route?.split('→')[0]?.trim() || 'Germany')} <span className="mx-1"> </span>
+              {(activeShipment.route?.split('→')[1]?.trim() || 'France')}
+            </p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <div>
+                <p className="text-slate-500 uppercase tracking-wide text-[10px] mb-0.5">Departure</p>
+                <p>{activeShipment.departure}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 uppercase tracking-wide text-[10px] mb-0.5">Arrival</p>
+                <p>{activeShipment.arrival}</p>
+              </div>
+            </div>
+            <p className="pt-0.5">
+              <span className="text-slate-500 uppercase tracking-wide text-[10px] mr-1">Shipper</span>
+              <span>{activeShipment.tradeParty}</span>
+            </p>
+            <p className="text-[10px] text-slate-500 mt-1">
+              Showing a demo driving route between Germany and France for road shipments.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Vessel & voyage sidebar - top-right */}
-      {selectedVessel && (
+      {!isAirMode && !isRoadMode && selectedVessel && (
         <div className="absolute top-6 right-6 bg-slate-950/90 text-slate-100 rounded-xl shadow-xl border border-slate-800 p-3 z-20 w-80 max-h-[78vh] overflow-hidden flex flex-col backdrop-blur-md">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">

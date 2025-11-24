@@ -1,0 +1,70 @@
+{
+    "pagination": {
+        "limit": 100,
+        "offset": 0,
+        "count": 1,
+        "total": 1
+    },
+    "data": [
+        {
+            "flight_date": "2025-11-23",
+            "flight_status": "scheduled",
+            "departure": {
+                "airport": "Vancouver International",
+                "timezone": "America/Vancouver",
+                "iata": "YVR",
+                "icao": "CYVR",
+                "terminal": "M",
+                "gate": null,
+                "delay": 21,
+                "scheduled": "2025-11-23T21:25:00+00:00",
+                "estimated": "2025-11-23T21:25:00+00:00",
+                "actual": "2025-11-23T21:46:00+00:00",
+                "estimated_runway": "2025-11-23T21:46:00+00:00",
+                "actual_runway": "2025-11-23T21:46:00+00:00"
+            },
+            "arrival": {
+                "airport": "Heathrow",
+                "timezone": "Europe/London",
+                "iata": "LHR",
+                "icao": "EGLL",
+                "terminal": "3",
+                "gate": null,
+                "baggage": null,
+                "scheduled": "2025-11-24T14:50:00+00:00",
+                "delay": null,
+                "estimated": "2025-11-24T14:19:00+00:00",
+                "actual": null,
+                "estimated_runway": null,
+                "actual_runway": null
+            },
+            "airline": {
+                "name": "British Airways",
+                "iata": "BA",
+                "icao": "BAW"
+            },
+            "flight": {
+                "number": "84",
+                "iata": "BA84",
+                "icao": "BAW84",
+                "codeshared": null
+            },
+            "aircraft": {
+                "registration": "G-XWBP",
+                "iata": "A35K",
+                "icao": "A35K",
+                "icao24": "407F2D"
+            },
+            "live": {
+                "updated": "2025-11-24T08:34:38+00:00",
+                "latitude": 65.2326,
+                "longitude": -91.0968,
+                "altitude": 11887.2,
+                "direction": 59,
+                "speed_horizontal": 909.332,
+                "speed_vertical": 0,
+                "is_ground": false
+            }
+        }
+    ]
+}

@@ -1,5 +1,7 @@
 import VesselFinderIndex from "@/components/external/VesselFinderIndex";
 import Sidebar from "@/components/Sidebar";
+import { useLocation } from "react-router-dom";
+import type { Shipment } from "@/types/shipment";
 
 /**
  * Vessel Finder Page
@@ -9,11 +11,15 @@ import Sidebar from "@/components/Sidebar";
  */
 
 const ExternalPage = () => {
+  const location = useLocation();
+  const state = location.state as { shipment?: Shipment } | undefined;
+  const activeShipment = state?.shipment;
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
       <div className="ml-16">
-        <VesselFinderIndex />
+        <VesselFinderIndex activeShipment={activeShipment} />
       </div>
     </div>
   );

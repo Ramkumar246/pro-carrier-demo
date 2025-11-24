@@ -1,5 +1,6 @@
 import React from 'react';
 import addressRaw from '@/data/vessel-finder/address.txt?raw';
+import airRaw from '@/data/vessel-finder/air.txt?raw';
 import type { LucideIcon } from 'lucide-react';
 import {
   Anchor,
@@ -8,6 +9,7 @@ import {
   MapPin,
   Package,
   Ship,
+  Plane,
   X,
 } from 'lucide-react';
 
@@ -77,6 +79,7 @@ interface ShipmentSidebarProps {
     transitDays: number;
     transitDaysRemaining: number;
   } | null;
+  isAirMode?: boolean;
 }
 
 interface ParsedAddress {
@@ -124,6 +127,41 @@ const parseAddressFile = (raw: string) => {
 
 const parsedAddresses = parseAddressFile(addressRaw ?? '');
 
+interface AirApiResponse {
+  data?: {
+    flight_date?: string;
+    flight_status?: string;
+    departure?: {
+      airport?: string;
+      iata?: string;
+      scheduled?: string;
+      estimated?: string | null;
+      actual?: string | null;
+      estimated_runway?: string | null;
+    };
+    arrival?: {
+      airport?: string;
+      iata?: string;
+      scheduled?: string;
+      estimated?: string | null;
+      actual?: string | null;
+    };
+    airline?: {
+      name?: string;
+      iata?: string;
+      icao?: string;
+    };
+    flight?: {
+      number?: string;
+      iata?: string;
+      icao?: string;
+    };
+  }[];
+}
+
+const parsedAir: AirApiResponse = airRaw ? JSON.parse(airRaw) : {};
+const activeFlight = parsedAir.data?.[0];
+
 const statusStyles: Record<
   MilestoneStatus,
   { text: string; dot: string; ring: string; badge: string }
@@ -154,10 +192,24 @@ const statusStyles: Record<
   },
 };
 
-const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onModeChange, segmentData, voyageSummary }) => {
-  const isSupplierView = mode === 'supplier';
-  const isBuyerView = mode === 'buyer';
-  const showCloseAction = isSupplierView || isBuyerView;
+const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onModeChange, segmentData, voyageSummary, isAirMode }) => {
+  const isAirView = isAirMode === true;
+  const isSupplierView = !isAirView && mode === 'supplier';
+  const isBuyerView = !isAirView && mode === 'buyer';
+  const showCloseAction = !isAirView && (isSupplierView || isBuyerView);
+
+  const airDeparture = activeFlight?.departure;
+  const airArrival = activeFlight?.arrival;
+  const airAirline = activeFlight?.airline;
+  const airFlightInfo = activeFlight?.flight;
+  const airDepartureLabel =
+    airDeparture?.iata
+      ? `${airDeparture.airport ?? ''} (${airDeparture.iata})`
+      : airDeparture?.airport;
+  const airArrivalLabel =
+    airArrival?.iata
+      ? `${airArrival.airport ?? ''} (${airArrival.iata})`
+      : airArrival?.airport;
 
   const handleClose = () => {
     onModeChange?.('default');
@@ -205,6 +257,97 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
   };
 
   const summary = voyageSummary ?? defaultSummary;
+
+  const formatIsoDateTime = (iso?: string | null) => {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    const day = d.getUTCDate().toString().padStart(2, '0');
+    const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+    const year = d.getUTCFullYear();
+    const hours = d.getUTCHours().toString().padStart(2, '0');
+    const mins = d.getUTCMinutes().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${mins} UTC`;
+  };
+
+  const computeLegProgress = (startIso?: string | null, endIso?: string | null) => {
+    if (!startIso || !endIso) return 0;
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start >= end) return 0;
+
+    const now = new Date();
+    const total = end.getTime() - start.getTime();
+    const elapsed = now.getTime() - start.getTime();
+    if (elapsed <= 0) return 0;
+    if (elapsed >= total) return 100;
+    return Math.max(0, Math.min(100, Math.round((elapsed / total) * 100)));
+  };
+
+  const airMilestones: ProgressMilestone[] = isAirView && activeFlight
+    ? (() => {
+        const dep = airDeparture;
+        const arr = airArrival;
+
+        const collectedDate = dep?.scheduled ?? dep?.estimated ?? dep?.actual ?? null;
+        const departureDate = dep?.actual ?? dep?.estimated_runway ?? dep?.scheduled ?? null;
+        const arrivalDate = arr?.actual ?? arr?.estimated ?? arr?.scheduled ?? null;
+        const deliveryDate = arrivalDate;
+
+        const hasDepartureActual = !!dep?.actual;
+        const hasArrivalActual = !!arr?.actual;
+
+        return [
+          {
+            id: 'air-collected',
+            label: 'Collected',
+            location:
+              airDepartureLabel ||
+              dep?.airport ||
+              (dep?.iata ? `${dep.iata} Airport` : 'Origin'),
+            statusLabel: 'Completed',
+            status: 'completed',
+            date: formatIsoDateTime(collectedDate),
+          },
+          {
+            id: 'air-departure',
+            label: 'Departure',
+            location:
+              airDepartureLabel ||
+              dep?.airport ||
+              (dep?.iata ? `${dep.iata} Airport` : 'Origin'),
+            statusLabel: hasDepartureActual ? 'Departed' : 'Scheduled',
+            status: hasDepartureActual ? 'completed' : 'scheduled',
+            date: formatIsoDateTime(departureDate),
+          },
+          {
+            id: 'air-arrival',
+            label: 'Arrival',
+            location:
+              airArrivalLabel ||
+              arr?.airport ||
+              (arr?.iata ? `${arr.iata} Airport` : 'Destination'),
+            statusLabel: hasArrivalActual ? 'Arrived' : 'Scheduled',
+            status: hasArrivalActual ? 'completed' : 'scheduled',
+            date: formatIsoDateTime(arrivalDate),
+          },
+          {
+            id: 'air-delivery',
+            label: 'Delivery',
+            location:
+              arr?.airport ||
+              (arr?.iata ? `${arr.iata} Airport` : 'Final consignee'),
+            statusLabel: 'Pending',
+            status: 'pending',
+            date: formatIsoDateTime(deliveryDate),
+          },
+        ];
+      })()
+    : [];
+
+  const airLegProgress = isAirView
+    ? computeLegProgress(airDeparture?.scheduled ?? null, airArrival?.scheduled ?? null)
+    : 0;
 
   const timelinessBadgeClass =
     summary.timelinessStatus === 'delayed'
@@ -517,7 +660,32 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
     },
   ];
 
-  const sections = isSupplierView ? supplierSections : isBuyerView ? buyerSections : defaultSections;
+  const airSections: Section[] = isAirView
+    ? [
+        {
+          id: 'air-leg',
+          type: 'progress',
+          title: 'Air Leg',
+          subtitle:
+            airDeparture?.iata && airArrival?.iata
+              ? `${airDeparture.iata} → ${airArrival.iata}`
+              : 'Main flight segment',
+          progress: airLegProgress,
+          milestones: airMilestones,
+          icon: Plane,
+          iconBackground: 'bg-[#E0F2FE]',
+          iconColor: 'text-[#0369A1]',
+        },
+      ]
+    : [];
+
+  const sections = isAirView
+    ? airSections
+    : isSupplierView
+      ? supplierSections
+      : isBuyerView
+        ? buyerSections
+        : defaultSections;
 
   return (
     <div className="w-[32rem] h-screen overflow-y-auto border-r border-border bg-white">
@@ -533,7 +701,35 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
             </button>
           )}
 
-          {isSupplierView ? (
+          {isAirView ? (
+            <div className="flex flex-col gap-4 pr-4">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-white/70">Air Shipment</p>
+                <h2 className="mt-1 text-2xl font-semibold leading-tight">{airAirline?.name || 'Airline'}</h2>
+                <p className="mt-1 text-sm text-white/80">
+                  {airFlightInfo?.iata || airFlightInfo?.icao || airFlightInfo?.number || 'Flight'}
+                </p>
+              </div>
+              <div className="grid gap-1 text-sm text-white/80">
+                {(airDepartureLabel || airArrivalLabel) && (
+                  <p>
+                    {airDepartureLabel || 'Origin'} 
+                    <span className="mx-1">→</span>
+                    {airArrivalLabel || 'Destination'}
+                  </p>
+                )}
+                <p>
+                  Departure: {formatIsoDateTime(airDeparture?.scheduled)}
+                </p>
+                <p>
+                  Arrival: {formatIsoDateTime(airArrival?.scheduled)}
+                </p>
+                {activeFlight?.flight_status && (
+                  <p>Status: {activeFlight.flight_status}</p>
+                )}
+              </div>
+            </div>
+          ) : isSupplierView ? (
             <div className="flex flex-col gap-3 pr-4">
               <div>
                 <p className="text-xs uppercase tracking-wider text-white/70">Supplier</p>
