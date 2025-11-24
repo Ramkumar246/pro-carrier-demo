@@ -1,69 +1,31 @@
-import { useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import type { ShipmentStatusGroups, TransportMode } from "@/types/shipment";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-const STATUS_CONFIG = [
-  { key: "inTransit" as const, label: "In Transit" },
-  { key: "pending" as const, label: "Pending" },
-  { key: "completed" as const, label: "Completed" },
+const data = [
+  { month: "Jan", sea: 120, air: 90, road: 60 },
+  { month: "Feb", sea: 130, air: 100, road: 70 },
+  { month: "Mar", sea: 125, air: 95, road: 65 },
+  { month: "Apr", sea: 140, air: 110, road: 80 },
+  { month: "May", sea: 150, air: 120, road: 85 },
+  { month: "Jun", sea: 160, air: 130, road: 90 },
 ];
 
-const TRANSPORT_MODES: TransportMode[] = ["Sea", "Air", "Road"];
-const MODE_COLORS: Record<TransportMode, string> = {
-  Sea: "hsl(var(--chart-1))",
-  Air: "hsl(var(--chart-2))",
-  Road: "hsl(var(--chart-3))",
-};
-
-interface FreightWeightChartProps {
-  shipmentGroups: ShipmentStatusGroups;
-}
-
-const FreightWeightChart = ({ shipmentGroups }: FreightWeightChartProps) => {
-  const data = useMemo(() => {
-    return STATUS_CONFIG.map(({ key, label }) => {
-      const shipments = shipmentGroups[key];
-      const totals: Record<TransportMode, number> = { Sea: 0, Air: 0, Road: 0 };
-
-      shipments.forEach((shipment) => {
-        totals[shipment.transportMode] += shipment.grossWeight;
-      });
-
-      return {
-        status: label,
-        ...totals,
-      };
-    });
-  }, [shipmentGroups]);
-
-  const hasData = data.some((entry) => TRANSPORT_MODES.some((mode) => entry[mode] > 0));
-
-  if (!hasData) {
-    return (
-      <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-        No freight weight data available.
-      </div>
-    );
-  }
-
+const FreightWeightChart = () => {
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={200}>
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-        <XAxis dataKey="status" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+        <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "hsl(var(--card))",
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: "hsl(var(--card))", 
             border: "1px solid hsl(var(--border))",
-            borderRadius: "0.5rem",
-          }}
-          formatter={(value: number, name: string) => [`${value.toLocaleString()} kg`, `${name} Weight`]}
+            borderRadius: "0.5rem"
+          }} 
         />
-        <Legend />
-        {TRANSPORT_MODES.map((mode) => (
-          <Bar key={mode} dataKey={mode} fill={MODE_COLORS[mode]} radius={[4, 4, 0, 0]} />
-        ))}
+        <Bar dataKey="sea" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="air" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="road" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

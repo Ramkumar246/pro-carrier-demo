@@ -9,33 +9,7 @@ export const transportFilterOptions: { label: string; value: TransportFilter }[]
   { label: "All", value: "All" },
 ];
 
-type ShipmentInput = Omit<Shipment, "carbonEmissions"> & { carbonEmissions?: number };
-
-const emissionFactorByMode: Record<TransportMode, number> = {
-  Sea: 2.4,
-  Air: 12.5,
-  Road: 1.8,
-};
-
-const computeCarbonEmissions = (shipment: ShipmentInput) => {
-  if (typeof shipment.carbonEmissions === "number") {
-    return Number(shipment.carbonEmissions.toFixed(2));
-  }
-
-  const factor = emissionFactorByMode[shipment.transportMode] ?? 2.2;
-  const emissionsFromVolume = shipment.volumeTeu * factor;
-  const emissionsFromWeight = shipment.grossWeight * 0.0002;
-
-  return Number((emissionsFromVolume + emissionsFromWeight).toFixed(2));
-};
-
-const enhanceShipments = (shipments: ShipmentInput[]) =>
-  shipments.map((shipment) => ({
-    ...shipment,
-    carbonEmissions: computeCarbonEmissions(shipment),
-  }));
-
-const rawShipmentData: Record<"inTransit" | "pending" | "completed", ShipmentInput[]> = {
+export const shipmentData = {
   inTransit: [
     {
       id: "PC#2025-084406",
@@ -415,7 +389,7 @@ const rawShipmentData: Record<"inTransit" | "pending" | "completed", ShipmentInp
       costUsd: 76000,
       containerMode: "LCL",
     },
-  ] as ShipmentInput[],
+  ] as Shipment[],
   pending: [
     {
       id: "PN#2025-010001",
@@ -522,7 +496,7 @@ const rawShipmentData: Record<"inTransit" | "pending" | "completed", ShipmentInp
       costUsd: 18000,
       containerMode: "FTL",
     },
-  ] as ShipmentInput[],
+  ] as Shipment[],
   completed: [
     {
       id: "CP#2025-000901",
@@ -818,13 +792,7 @@ const rawShipmentData: Record<"inTransit" | "pending" | "completed", ShipmentInp
       costUsd: 19000,
       containerMode: "LTL",
     },
-  ] as ShipmentInput[],
-};
-
-export const shipmentData = {
-  inTransit: enhanceShipments(rawShipmentData.inTransit),
-  pending: enhanceShipments(rawShipmentData.pending),
-  completed: enhanceShipments(rawShipmentData.completed),
+  ] as Shipment[],
 };
 
 export const filterShipmentsByMode = (shipments: Shipment[], filter: TransportFilter) => {

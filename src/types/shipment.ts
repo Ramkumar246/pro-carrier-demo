@@ -22,12 +22,5 @@ export interface Shipment {
   containers: number;
   costUsd: number;
   containerMode: ContainerMode;
-  carbonEmissions: number;
-}
-
-export interface ShipmentStatusGroups {
-  inTransit: Shipment[];
-  pending: Shipment[];
-  completed: Shipment[];
 }
 
