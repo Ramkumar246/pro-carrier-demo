@@ -32,6 +32,7 @@ const FreightWeightChart = () => {
 
   useEffect(() => {
     const root = am5.Root.new("freightWeightChart");
+    root._logo?.dispose();
     rootRef.current = root;
 
     root.setThemes([am5themes_Animated.new(root)]);

@@ -22,5 +22,6 @@ export interface Shipment {
   containers: number;
   costUsd: number;
   containerMode: ContainerMode;
+  emissionCo2eKg?: number; // Total CO₂e emissions in kg (only for in-transit and completed shipments)
 }
 

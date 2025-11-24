@@ -31,6 +31,7 @@ const ShipmentDistributionChart = ({ type }: ShipmentDistributionChartProps) => 
 
   useEffect(() => {
     const root = am5.Root.new(chartId);
+    root._logo?.dispose();
     rootRef.current = root;
 
     root.setThemes([am5themes_Animated.new(root)]);

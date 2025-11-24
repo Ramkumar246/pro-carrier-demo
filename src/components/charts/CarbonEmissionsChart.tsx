@@ -4,17 +4,15 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { getCSSVariableColor } from "@/lib/chart-colors";
 
-// Sample data matching mockup exactly - last 6 months (Jan-Jun)
-// Pink line: starts mid-range, peaks in Feb, dips in Apr, peaks in May, ends mid-range
-// Dark blue: starts low in Jan, peaks in Mar, dips in Apr, rises steadily through May and Jun
-// Teal: starts mid-range, dips in Feb, peaks in Apr, dips in May, ends low in Jun
+// Sample data for last 6 months - Spline graph with weight/emissions on Y-axis, months on X-axis
+// Values stay within 0-600 kg so we can highlight every 100 kg tick on the axis
 const data = [
-  { month: "Jan", pink: 130, darkBlue: 90, teal: 120 },
-  { month: "Feb", pink: 180, darkBlue: 100, teal: 100 },
-  { month: "Mar", pink: 150, darkBlue: 170, teal: 110 },
-  { month: "Apr", pink: 120, darkBlue: 140, teal: 175 },
-  { month: "May", pink: 190, darkBlue: 160, teal: 130 },
-  { month: "Jun", pink: 140, darkBlue: 180, teal: 95 },
+  { month: "Jul", sea: 420, road: 260, air: 220 },
+  { month: "Aug", sea: 460, road: 280, air: 240 },
+  { month: "Sep", sea: 520, road: 310, air: 260 },
+  { month: "Oct", sea: 480, road: 290, air: 240 },
+  { month: "Nov", sea: 550, road: 330, air: 270 },
+  { month: "Dec", sea: 510, road: 300, air: 250 },
 ];
 
 const CarbonEmissionsChart = () => {
@@ -26,14 +24,16 @@ const CarbonEmissionsChart = () => {
     rootRef.current = root;
 
     root.setThemes([am5themes_Animated.new(root)]);
+    root._logo?.dispose();
 
-    // Get colors from CSS variables - matching mockup colors
-    const color1 = "#f85a9d"; // Pink
-    const color2 = "#2b2a7a"; // Dark blue
-    const color3 = "#39c7c4"; // Teal
+    // Get colors matching mockup - Sea (dark blue), Road (pink), Air (teal)
+    const seaColor = "#2b2a7a"; // Dark blue
+    const roadColor = "#f85a9d"; // Pink
+    const airColor = "#39c7c4"; // Teal
     const cardColor = getCSSVariableColor("--card");
     const borderColor = getCSSVariableColor("--border");
     const foregroundColor = getCSSVariableColor("--foreground");
+    const axisLabelColor = getCSSVariableColor("--muted-foreground");
 
     const chart = root.container.children.push(
       am5xy.XYChart.new(root, {
@@ -46,61 +46,69 @@ const CarbonEmissionsChart = () => {
     );
     chartRef.current = chart;
 
+    // X-axis: Months (last 6 months)
     const xAxis = chart.xAxes.push(
       am5xy.CategoryAxis.new(root, {
         categoryField: "month",
         renderer: am5xy.AxisRendererX.new(root, {
           cellStartLocation: 0.1,
           cellEndLocation: 0.9,
+          minGridDistance: 15,
         }),
       })
     );
 
+    xAxis.get("renderer").labels.template.setAll({
+      fill: am5.color(axisLabelColor),
+      fontSize: 12,
+    });
+
+    // Y-axis: Weight/Emissions
+    const yAxisRenderer = am5xy.AxisRendererY.new(root, {
+      minGridDistance: 20,
+    });
     const yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
-        renderer: am5xy.AxisRendererY.new(root, {}),
+        renderer: yAxisRenderer,
+        min: 200,
+        max: 600,
+        strictMinMax: true,
+        numberFormat: "#' kg'",
+        extraMin: 0,
+        extraMax: 0,
+      })
+    );
+    yAxisRenderer.labels.template.setAll({
+      fill: am5.color(axisLabelColor),
+      fontSize: 12,
+    });
+    yAxis.set(
+      "numberFormatter",
+      am5.NumberFormatter.new(root, {
+        numberFormat: "#' kg'",
       })
     );
 
-    // Create 3 line series matching mockup - Pink, Dark Blue, Teal
-    const pinkSeries = chart.series.push(
-      am5xy.LineSeries.new(root, {
-        name: "Pink",
-        xAxis: xAxis,
-        yAxis: yAxis,
-        valueYField: "pink",
-        categoryXField: "month",
-        stroke: am5.color(color1),
-        fill: am5.color(color1),
-      })
-    );
+    const createSeries = (name: string, field: keyof typeof data[number], color: string) => {
+      const valueField = field as keyof (typeof data)[number];
 
-    const darkBlueSeries = chart.series.push(
-      am5xy.LineSeries.new(root, {
-        name: "Dark Blue",
-        xAxis: xAxis,
-        yAxis: yAxis,
-        valueYField: "darkBlue",
-        categoryXField: "month",
-        stroke: am5.color(color2),
-        fill: am5.color(color2),
-      })
-    );
+      const series = chart.series.push(
+        am5xy.SmoothedXLineSeries.new(root, {
+          name,
+          xAxis: xAxis,
+          yAxis: yAxis,
+          valueYField: valueField as string,
+          categoryXField: "month",
+          stroke: am5.color(color),
+          fill: am5.color(color),
+          tooltip: am5.Tooltip.new(root, {
+            getFillFromSprite: false,
+            pointerOrientation: "horizontal",
+            labelText: `${name}: {valueY.formatNumber('#,###.##')} kg`,
+          }),
+        })
+      );
 
-    const tealSeries = chart.series.push(
-      am5xy.LineSeries.new(root, {
-        name: "Teal",
-        xAxis: xAxis,
-        yAxis: yAxis,
-        valueYField: "teal",
-        categoryXField: "month",
-        stroke: am5.color(color3),
-        fill: am5.color(color3),
-      })
-    );
-
-    // Configure all series with smooth curves and bullets
-    [pinkSeries, darkBlueSeries, tealSeries].forEach((series) => {
       series.strokes.template.setAll({
         strokeWidth: 2,
       });
@@ -113,37 +121,55 @@ const CarbonEmissionsChart = () => {
           }),
         });
       });
-    });
+      const tooltip = series.get("tooltip");
+      if (tooltip) {
+        tooltip.get("background")?.setAll({
+          fill: am5.color(cardColor),
+          fillOpacity: 1,
+          stroke: am5.color(borderColor),
+          strokeWidth: 1,
+        });
+        tooltip.label.setAll({
+          fill: am5.color(foregroundColor),
+          fontSize: 12,
+        });
+      }
 
-    pinkSeries.data.setAll(data);
-    darkBlueSeries.data.setAll(data);
-    tealSeries.data.setAll(data);
+      return series;
+    };
+
+    // Create 3 spline series - Sea, Road, Air
+    const seaSeries = createSeries("Sea Mode", "sea", seaColor);
+    const roadSeries = createSeries("Road", "road", roadColor);
+    const airSeries = createSeries("Air", "air", airColor);
+
+    seaSeries.data.setAll(data);
+    roadSeries.data.setAll(data);
+    airSeries.data.setAll(data);
     xAxis.data.setAll(data);
-
     const cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
+    cursor.set("snapToSeries", [seaSeries, roadSeries, airSeries]);
+    cursor.get("tooltip")?.set("forceHidden", true);
     cursor.lineX.setAll({ strokeOpacity: 0.1 });
     cursor.lineY.setAll({ strokeOpacity: 0.1 });
 
-    const tooltip = am5.Tooltip.new(root, {
-      getFillFromSprite: false,
-    });
-    tooltip.get("background")?.setAll({
-      fill: am5.color(cardColor),
-      fillOpacity: 1,
-      stroke: am5.color(borderColor),
-      strokeWidth: 1,
-    });
-    tooltip.label.setAll({
-      fill: am5.color(foregroundColor),
-    });
-    pinkSeries.set("tooltip", tooltip);
-    darkBlueSeries.set("tooltip", tooltip);
-    tealSeries.set("tooltip", tooltip);
+    // Add legend
+    const legend = chart.children.push(
+      am5.Legend.new(root, {
+        centerX: am5.p50,
+        x: am5.p50,
+        centerY: am5.p50,
+        layout: root.horizontalLayout,
+        marginTop: 5,
+        paddingTop: 5,
+      })
+    );
+    legend.data.setAll(chart.series.values);
 
-    // Enhanced animations
-    pinkSeries.appear(1000, 100);
-    darkBlueSeries.appear(1200, 100);
-    tealSeries.appear(1400, 100);
+    // Enhanced animations with staggered timing
+    seaSeries.appear(1000, 100);
+    roadSeries.appear(1200, 100);
+    airSeries.appear(1400, 100);
     chart.appear(1000, 100);
 
     return () => {
@@ -151,7 +177,7 @@ const CarbonEmissionsChart = () => {
     };
   }, []);
 
-  return <div id="carbonEmissionsChart" style={{ width: "100%", height: "200px" }} />;
+  return <div id="carbonEmissionsChart" style={{ width: "100%", height: "230px" }} />;
 };
 
 export default CarbonEmissionsChart;

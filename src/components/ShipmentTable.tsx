@@ -164,6 +164,7 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
     if (!data.length) return;
 
     const root = am5.Root.new(chartIdRef.current);
+    root._logo?.dispose();
     rootRef.current = root;
 
     root.setThemes([am5themes_Animated.new(root)]);
@@ -292,6 +293,7 @@ const ContainerModePieChart = ({ data, activeFilter }: { data: ContainerMixDatum
     if (!data.length) return;
 
     const root = am5.Root.new(chartIdRef.current);
+    root._logo?.dispose();
     rootRef.current = root;
 
     root.setThemes([am5themes_Animated.new(root)]);
@@ -406,6 +408,7 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
     if (!transportData.length) return;
 
     const root = am5.Root.new(chartIdRef.current);
+    root._logo?.dispose();
     rootRef.current = root;
 
     root.setThemes([am5themes_Animated.new(root)]);
@@ -554,6 +557,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
     if (!data.length) return;
 
     const root = am5.Root.new(chartIdRef.current);
+    root._logo?.dispose();
     rootRef.current = root;
 
     root.setThemes([am5themes_Animated.new(root)]);
@@ -1189,6 +1193,29 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
       },
       enableValue: true,
       wrapText: true,
+    },
+    {
+      headerName: 'TOTAL CO₂e (kg)',
+      field: 'emissionCo2eKg',
+      minWidth: 150,
+      flex: 0,
+      width: 170,
+      filter: 'agNumberColumnFilter',
+      floatingFilter: true,
+      sortable: true,
+      resizable: true,
+      valueFormatter: ({ value }) => {
+        if (value == null || value === undefined) return '-';
+        return `${Number(value).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} kg`;
+      },
+      enableValue: true,
+      wrapText: true,
+      cellStyle: (params) => {
+        if (params.value == null || params.value === undefined) {
+          return { color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' };
+        }
+        return {};
+      },
     },
   ], []);
 

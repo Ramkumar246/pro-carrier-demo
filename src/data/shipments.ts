@@ -1,4 +1,5 @@
 import type { Shipment, TransportMode } from "@/types/shipment";
+import { getEmissionValue } from "@/lib/emission-utils";
 
 export type TransportFilter = TransportMode | "All";
 
@@ -9,7 +10,7 @@ export const transportFilterOptions: { label: string; value: TransportFilter }[]
   { label: "All", value: "All" },
 ];
 
-export const shipmentData = {
+const rawShipmentData = {
   inTransit: [
     {
       id: "PC#2025-084406",
@@ -17,20 +18,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "16/09/2025",
-      departureActualDate: "17/09/2025",
-      arrival: "18/10/2025",
-      arrivalActualDate: "19/10/2025",
-      delivery: "18/10/2025",
-      deliveryActualDate: "20/10/2025",
-      pickup: "15/09/2025",
-      pickupActualDate: "15/09/2025",
+      departure: "15/06/2024",
+      departureActualDate: "16/06/2024",
+      arrival: "18/07/2024",
+      arrivalActualDate: "19/07/2024",
+      delivery: "18/07/2024",
+      deliveryActualDate: "20/07/2024",
+      pickup: "14/06/2024",
+      pickupActualDate: "14/06/2024",
       tradeParty: "XYZ Shipper China",
       grossWeight: 12800,
       volumeTeu: 4,
       containers: 3,
       costUsd: 82000,
       containerMode: "LCL",
+      emissionCo2eKg: 1000.136, // SEA + LCL
     },
     {
       id: "PC#2025-084407",
@@ -38,20 +40,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "16/09/2025",
-      departureActualDate: "16/09/2025",
-      arrival: "20/10/2025",
-      arrivalActualDate: "22/10/2025",
-      delivery: "24/10/2025",
-      deliveryActualDate: "26/10/2025",
-      pickup: "15/09/2025",
-      pickupActualDate: "16/09/2025",
+      departure: "16/09/2024",
+      departureActualDate: "16/09/2024",
+      arrival: "20/10/2024",
+      arrivalActualDate: "22/10/2024",
+      delivery: "24/10/2024",
+      deliveryActualDate: "26/10/2024",
+      pickup: "15/09/2024",
+      pickupActualDate: "16/09/2024",
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 9800,
       volumeTeu: 3,
       containers: 2,
       costUsd: 61000,
       containerMode: "LCL",
+      emissionCo2eKg: 0.699, // SEA + LCL
     },
     {
       id: "PC#2025-084408",
@@ -59,20 +62,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "18/09/2025",
-      departureActualDate: "18/09/2025",
-      arrival: "22/10/2025",
-      arrivalActualDate: "23/10/2025",
-      delivery: "24/10/2025",
-      deliveryActualDate: "25/10/2025",
-      pickup: "17/09/2025",
-      pickupActualDate: "17/09/2025",
+      departure: "18/09/2024",
+      departureActualDate: "18/09/2024",
+      arrival: "22/10/2024",
+      arrivalActualDate: "23/10/2024",
+      delivery: "24/10/2024",
+      deliveryActualDate: "25/10/2024",
+      pickup: "17/09/2024",
+      pickupActualDate: "17/09/2024",
       tradeParty: "XYZ Shipper China",
       grossWeight: 11250,
       volumeTeu: 3,
       containers: 2,
       costUsd: 70050,
       containerMode: "LCL",
+      emissionCo2eKg: 0.91, // SEA + LCL
     },
     {
       id: "PC#2025-084409",
@@ -80,20 +84,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "18/09/2025",
-      departureActualDate: "19/09/2025",
-      arrival: "25/10/2025",
-      arrivalActualDate: "29/10/2025",
-      delivery: "27/10/2025",
-      deliveryActualDate: "31/10/2025",
-      pickup: "17/09/2025",
-      pickupActualDate: "19/09/2025",
+      departure: "18/09/2024",
+      departureActualDate: "19/09/2024",
+      arrival: "25/10/2024",
+      arrivalActualDate: "29/10/2024",
+      delivery: "27/10/2024",
+      deliveryActualDate: "31/10/2024",
+      pickup: "17/09/2024",
+      pickupActualDate: "19/09/2024",
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 15000,
       volumeTeu: 5,
       containers: 4,
       costUsd: 98000,
       containerMode: "LCL",
+      emissionCo2eKg: 1002.238, // SEA + LCL
     },
     {
       id: "PC#2025-084410",
@@ -101,20 +106,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "20/09/2025",
-      departureActualDate: "21/09/2025",
-      arrival: "29/10/2025",
-      arrivalActualDate: "31/10/2025",
-      delivery: "30/10/2025",
-      deliveryActualDate: "02/11/2025",
-      pickup: "19/09/2025",
-      pickupActualDate: "19/09/2025",
+      departure: "20/09/2024",
+      departureActualDate: "21/09/2024",
+      arrival: "29/10/2024",
+      arrivalActualDate: "31/10/2024",
+      delivery: "30/10/2024",
+      deliveryActualDate: "02/11/2024",
+      pickup: "19/09/2024",
+      pickupActualDate: "19/09/2024",
       tradeParty: "XYZ Shipper China",
       grossWeight: 13200,
       volumeTeu: 4,
       containers: 3,
       costUsd: 86000,
       containerMode: "LCL",
+      emissionCo2eKg: 1001.69, // SEA + LCL
     },
     {
       id: "PC#2025-084411",
@@ -122,20 +128,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "22/09/2025",
-      departureActualDate: "23/09/2025",
-      arrival: "01/11/2025",
-      arrivalActualDate: "05/11/2025",
-      delivery: "04/11/2025",
-      deliveryActualDate: "07/11/2025",
-      pickup: "21/09/2025",
-      pickupActualDate: "22/09/2025",
+      departure: "22/09/2024",
+      departureActualDate: "23/09/2024",
+      arrival: "01/11/2024",
+      arrivalActualDate: "05/11/2024",
+      delivery: "04/11/2024",
+      deliveryActualDate: "07/11/2024",
+      pickup: "21/09/2024",
+      pickupActualDate: "22/09/2024",
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 10600,
       volumeTeu: 3,
       containers: 2,
       costUsd: 64000,
       containerMode: "ROR",
+      emissionCo2eKg: 100.291, // SEA + ROR (using FCL value as reference)
     },
     {
       id: "PC#2025-084412",
@@ -143,20 +150,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Doha → Frankfurt",
       transportMode: "Air" as TransportMode,
-      departure: "24/09/2025",
-      departureActualDate: "24/09/2025",
-      arrival: "25/09/2025",
-      arrivalActualDate: "25/09/2025",
-      delivery: "26/09/2025",
-      deliveryActualDate: "27/09/2025",
-      pickup: "23/09/2025",
-      pickupActualDate: "23/09/2025",
+      departure: "24/09/2024",
+      departureActualDate: "24/09/2024",
+      arrival: "25/09/2024",
+      arrivalActualDate: "25/09/2024",
+      delivery: "26/09/2024",
+      deliveryActualDate: "27/09/2024",
+      pickup: "23/09/2024",
+      pickupActualDate: "23/09/2024",
       tradeParty: "Middle East Logistics",
       grossWeight: 3200,
       volumeTeu: 1,
       containers: 0,
       costUsd: 28000,
       containerMode: "LSE",
+      emissionCo2eKg: 0.515, // AIR + LSE
     },
     {
       id: "PC#2025-084413",
@@ -164,20 +172,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Warsaw → Munich",
       transportMode: "Road" as TransportMode,
-      departure: "23/09/2025",
-      departureActualDate: "23/09/2025",
-      arrival: "27/09/2025",
-      arrivalActualDate: "27/09/2025",
-      delivery: "27/09/2025",
-      deliveryActualDate: "28/09/2025",
-      pickup: "22/09/2025",
-      pickupActualDate: "23/09/2025",
+      departure: "23/09/2024",
+      departureActualDate: "23/09/2024",
+      arrival: "27/09/2024",
+      arrivalActualDate: "27/09/2024",
+      delivery: "27/09/2024",
+      deliveryActualDate: "28/09/2024",
+      pickup: "22/09/2024",
+      pickupActualDate: "23/09/2024",
       tradeParty: "EU Auto Parts",
       grossWeight: 7800,
       volumeTeu: 2,
       containers: 0,
       costUsd: 21000,
       containerMode: "LTL",
+      emissionCo2eKg: 0.139, // ROA + LTL
     },
     {
       id: "PC#2025-084414",
@@ -185,20 +194,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Los Angeles → Sydney",
       transportMode: "Sea" as TransportMode,
-      departure: "05/10/2025",
-      departureActualDate: "08/10/2025",
-      arrival: "15/11/2025",
-      arrivalActualDate: "20/11/2025",
-      delivery: "21/11/2025",
-      deliveryActualDate: "25/11/2025",
-      pickup: "03/10/2025",
-      pickupActualDate: "05/10/2025",
+      departure: "05/10/2024",
+      departureActualDate: "08/10/2024",
+      arrival: "15/11/2024",
+      arrivalActualDate: "20/11/2024",
+      delivery: "21/11/2024",
+      deliveryActualDate: "25/11/2024",
+      pickup: "03/10/2024",
+      pickupActualDate: "05/10/2024",
       tradeParty: "Pacific Horizon Imports",
       grossWeight: 14200,
       volumeTeu: 4,
       containers: 3,
       costUsd: 93000,
       containerMode: "FCL",
+      emissionCo2eKg: 100.291, // SEA + FCL
     },
     {
       id: "PC#2025-084415",
@@ -206,20 +216,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Qingdao → Long Beach",
       transportMode: "Sea" as TransportMode,
-      departure: "12/10/2025",
-      departureActualDate: "14/10/2025",
-      arrival: "20/11/2025",
-      arrivalActualDate: "24/11/2025",
-      delivery: "25/11/2025",
-      deliveryActualDate: "29/11/2025",
-      pickup: "10/10/2025",
-      pickupActualDate: "11/10/2025",
+      departure: "12/10/2024",
+      departureActualDate: "14/10/2024",
+      arrival: "20/11/2024",
+      arrivalActualDate: "24/11/2024",
+      delivery: "25/11/2024",
+      deliveryActualDate: "29/11/2024",
+      pickup: "10/10/2024",
+      pickupActualDate: "11/10/2024",
       tradeParty: "West Coast Retail Group",
       grossWeight: 15800,
       volumeTeu: 5,
       containers: 4,
       costUsd: 105000,
       containerMode: "LCL",
+      emissionCo2eKg: 1001.69, // SEA + LCL
     },
     {
       id: "PC#2025-084416",
@@ -227,20 +238,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Chicago → São Paulo",
       transportMode: "Air" as TransportMode,
-      departure: "02/10/2025",
-      departureActualDate: "03/10/2025",
-      arrival: "05/10/2025",
-      arrivalActualDate: "06/10/2025",
-      delivery: "07/10/2025",
-      deliveryActualDate: "08/10/2025",
-      pickup: "01/10/2025",
-      pickupActualDate: "02/10/2025",
+      departure: "02/10/2024",
+      departureActualDate: "03/10/2024",
+      arrival: "05/10/2024",
+      arrivalActualDate: "06/10/2024",
+      delivery: "07/10/2024",
+      deliveryActualDate: "08/10/2024",
+      pickup: "01/10/2024",
+      pickupActualDate: "02/10/2024",
       tradeParty: "Andes Coffee Collective",
       grossWeight: 3800,
       volumeTeu: 1,
       containers: 0,
       costUsd: 34000,
       containerMode: "LSE",
+      emissionCo2eKg: 0.99, // AIR + LSE
     },
     {
       id: "PC#2025-084417",
@@ -248,20 +260,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Hamburg → Milan",
       transportMode: "Road" as TransportMode,
-      departure: "06/10/2025",
-      departureActualDate: "07/10/2025",
-      arrival: "10/10/2025",
-      arrivalActualDate: "12/10/2025",
-      delivery: "11/10/2025",
-      deliveryActualDate: "13/10/2025",
-      pickup: "05/10/2025",
-      pickupActualDate: "06/10/2025",
+      departure: "06/10/2024",
+      departureActualDate: "07/10/2024",
+      arrival: "10/10/2024",
+      arrivalActualDate: "12/10/2024",
+      delivery: "11/10/2024",
+      deliveryActualDate: "13/10/2024",
+      pickup: "05/10/2024",
+      pickupActualDate: "06/10/2024",
       tradeParty: "Europa Fashion Outlet",
       grossWeight: 6400,
       volumeTeu: 2,
       containers: 0,
       costUsd: 26000,
       containerMode: "FTL",
+      emissionCo2eKg: 0.367, // ROA + FTL (using LTL value as reference)
     },
     {
       id: "PC#2025-084418",
@@ -269,20 +282,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Busan → Vancouver",
       transportMode: "Sea" as TransportMode,
-      departure: "09/10/2025",
-      departureActualDate: "09/10/2025",
-      arrival: "18/11/2025",
-      arrivalActualDate: "19/11/2025",
-      delivery: "21/11/2025",
-      deliveryActualDate: "23/11/2025",
-      pickup: "07/10/2025",
-      pickupActualDate: "08/10/2025",
+      departure: "09/10/2024",
+      departureActualDate: "09/10/2024",
+      arrival: "18/11/2024",
+      arrivalActualDate: "19/11/2024",
+      delivery: "21/11/2024",
+      deliveryActualDate: "23/11/2024",
+      pickup: "07/10/2024",
+      pickupActualDate: "08/10/2024",
       tradeParty: "Northern Lights Equipment",
       grossWeight: 13400,
       volumeTeu: 4,
       containers: 3,
       costUsd: 90000,
       containerMode: "LCL",
+      emissionCo2eKg: 1001.69, // SEA + LCL
     },
     {
       id: "PC#2025-084419",
@@ -290,20 +304,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Mumbai → Durban",
       transportMode: "Sea" as TransportMode,
-      departure: "14/10/2025",
-      departureActualDate: "16/10/2025",
-      arrival: "28/11/2025",
-      arrivalActualDate: "30/11/2025",
-      delivery: "02/12/2025",
-      deliveryActualDate: "05/12/2025",
-      pickup: "12/10/2025",
-      pickupActualDate: "14/10/2025",
+      departure: "14/10/2024",
+      departureActualDate: "16/10/2024",
+      arrival: "28/11/2024",
+      arrivalActualDate: "30/11/2024",
+      delivery: "02/12/2024",
+      deliveryActualDate: "05/12/2024",
+      pickup: "12/10/2024",
+      pickupActualDate: "14/10/2024",
       tradeParty: "Sahara Textiles Africa",
       grossWeight: 12100,
       volumeTeu: 3,
       containers: 2,
       costUsd: 74000,
       containerMode: "LCL",
+      emissionCo2eKg: 100.291, // SEA + LCL
     },
     {
       id: "PC#2025-084420",
@@ -311,20 +326,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Dubai → Nairobi",
       transportMode: "Air" as TransportMode,
-      departure: "11/10/2025",
-      departureActualDate: "11/10/2025",
-      arrival: "12/10/2025",
-      arrivalActualDate: "13/10/2025",
-      delivery: "14/10/2025",
-      deliveryActualDate: "14/10/2025",
-      pickup: "10/10/2025",
-      pickupActualDate: "10/10/2025",
+      departure: "11/10/2024",
+      departureActualDate: "11/10/2024",
+      arrival: "12/10/2024",
+      arrivalActualDate: "13/10/2024",
+      delivery: "14/10/2024",
+      deliveryActualDate: "14/10/2024",
+      pickup: "10/10/2024",
+      pickupActualDate: "10/10/2024",
       tradeParty: "Eastgate Pharma Kenya",
       grossWeight: 2500,
       volumeTeu: 1,
       containers: 0,
       costUsd: 28000,
       containerMode: "LSE",
+      emissionCo2eKg: 1.495, // AIR + LSE
     },
     {
       id: "PC#2025-084421",
@@ -332,20 +348,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Houston → Rotterdam",
       transportMode: "Sea" as TransportMode,
-      departure: "07/10/2025",
-      departureActualDate: "08/10/2025",
-      arrival: "15/11/2025",
-      arrivalActualDate: "17/11/2025",
-      delivery: "20/11/2025",
-      deliveryActualDate: "22/11/2025",
-      pickup: "05/10/2025",
-      pickupActualDate: "06/10/2025",
+      departure: "07/10/2024",
+      departureActualDate: "08/10/2024",
+      arrival: "15/11/2024",
+      arrivalActualDate: "17/11/2024",
+      delivery: "20/11/2024",
+      deliveryActualDate: "22/11/2024",
+      pickup: "05/10/2024",
+      pickupActualDate: "06/10/2024",
       tradeParty: "Atlantic Energy Services",
       grossWeight: 16500,
       volumeTeu: 5,
       containers: 4,
       costUsd: 108000,
       containerMode: "LCL",
+      emissionCo2eKg: 1002.238, // SEA + LCL
     },
     {
       id: "PC#2025-084422",
@@ -353,20 +370,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Toronto → Chicago",
       transportMode: "Road" as TransportMode,
-      departure: "03/10/2025",
-      departureActualDate: "04/10/2025",
-      arrival: "05/10/2025",
-      arrivalActualDate: "06/10/2025",
-      delivery: "06/10/2025",
-      deliveryActualDate: "08/10/2025",
-      pickup: "02/10/2025",
-      pickupActualDate: "03/10/2025",
+      departure: "03/10/2024",
+      departureActualDate: "04/10/2024",
+      arrival: "05/10/2024",
+      arrivalActualDate: "06/10/2024",
+      delivery: "06/10/2024",
+      deliveryActualDate: "08/10/2024",
+      pickup: "02/10/2024",
+      pickupActualDate: "03/10/2024",
       tradeParty: "Great Lakes Machinery",
       grossWeight: 8700,
       volumeTeu: 2,
       containers: 0,
       costUsd: 24000,
       containerMode: "LTL",
+      emissionCo2eKg: 0.719, // ROA + LTL
     },
     {
       id: "PC#2025-084423",
@@ -374,20 +392,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Melbourne → Singapore",
       transportMode: "Sea" as TransportMode,
-      departure: "18/10/2025",
-      departureActualDate: "19/10/2025",
-      arrival: "25/11/2025",
-      arrivalActualDate: "27/11/2025",
-      delivery: "27/11/2025",
-      deliveryActualDate: "29/11/2025",
-      pickup: "16/10/2025",
-      pickupActualDate: "18/10/2025",
+      departure: "18/10/2024",
+      departureActualDate: "19/10/2024",
+      arrival: "25/11/2024",
+      arrivalActualDate: "27/11/2024",
+      delivery: "27/11/2024",
+      deliveryActualDate: "29/11/2024",
+      pickup: "16/10/2024",
+      pickupActualDate: "18/10/2024",
       tradeParty: "Harborview Lifestyle",
       grossWeight: 11850,
       volumeTeu: 3,
       containers: 2,
       costUsd: 76000,
       containerMode: "LCL",
+      emissionCo2eKg: 1000.136, // SEA + LCL
     },
   ] as Shipment[],
   pending: [
@@ -397,13 +416,13 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "04/10/2025",
+      departure: "04/10/2024",
       departureActualDate: null,
-      arrival: "12/11/2025",
+      arrival: "12/11/2024",
       arrivalActualDate: null,
-      delivery: "14/11/2025",
+      delivery: "14/11/2024",
       deliveryActualDate: null, // Not yet delivered
-      pickup: "03/10/2025",
+      pickup: "03/10/2024",
       pickupActualDate: null, // Not yet picked up
       tradeParty: "XYZ Shipper China",
       grossWeight: 8900,
@@ -418,14 +437,14 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "06/10/2025",
+      departure: "06/10/2024",
       departureActualDate: null,
-      arrival: "16/11/2025",
+      arrival: "16/11/2024",
       arrivalActualDate: null,
-      delivery: "18/11/2025",
+      delivery: "18/11/2024",
       deliveryActualDate: null, // Not yet delivered
-      pickup: "05/10/2025",
-      pickupActualDate: "05/10/2025", // On time
+      pickup: "05/10/2024",
+      pickupActualDate: "05/10/2024", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 10200,
       volumeTeu: 3,
@@ -439,14 +458,14 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "10/10/2025",
+      departure: "10/10/2024",
       departureActualDate: null,
-      arrival: "20/11/2025",
+      arrival: "20/11/2024",
       arrivalActualDate: null,
-      delivery: "22/11/2025",
+      delivery: "22/11/2024",
       deliveryActualDate: null, // Not yet delivered
-      pickup: "09/10/2025",
-      pickupActualDate: "11/10/2025", // 2 days delay
+      pickup: "09/10/2024",
+      pickupActualDate: "11/10/2024", // 2 days delay
       tradeParty: "XYZ Shipper China",
       grossWeight: 9400,
       volumeTeu: 3,
@@ -460,14 +479,14 @@ export const shipmentData = {
       origin: "N/A",
       route: "Singapore → Los Angeles",
       transportMode: "Air" as TransportMode,
-      departure: "08/10/2025",
+      departure: "08/10/2024",
       departureActualDate: null,
-      arrival: "09/10/2025",
+      arrival: "09/10/2024",
       arrivalActualDate: null,
-      delivery: "10/10/2025",
+      delivery: "10/10/2024",
       deliveryActualDate: null, // Not yet delivered
-      pickup: "07/10/2025",
-      pickupActualDate: "07/10/2025", // On time
+      pickup: "07/10/2024",
+      pickupActualDate: "07/10/2024", // On time
       tradeParty: "Pacific Air Cargo",
       grossWeight: 2100,
       volumeTeu: 1,
@@ -481,14 +500,14 @@ export const shipmentData = {
       origin: "N/A",
       route: "Madrid → Lyon",
       transportMode: "Road" as TransportMode,
-      departure: "09/10/2025",
+      departure: "09/10/2024",
       departureActualDate: null,
-      arrival: "13/10/2025",
+      arrival: "13/10/2024",
       arrivalActualDate: null,
-      delivery: "14/10/2025",
+      delivery: "14/10/2024",
       deliveryActualDate: null, // Not yet delivered
-      pickup: "08/10/2025",
-      pickupActualDate: "09/10/2025", // 1 day delay
+      pickup: "08/10/2024",
+      pickupActualDate: "09/10/2024", // 1 day delay
       tradeParty: "EU Auto Parts",
       grossWeight: 5600,
       volumeTeu: 2,
@@ -504,20 +523,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "01/08/2025",
-      departureActualDate: "01/08/2025", // On time
-      arrival: "05/09/2025",
-      arrivalActualDate: "05/09/2025", // On time
-      delivery: "06/09/2025",
-      deliveryActualDate: "06/09/2025", // On time
-      pickup: "31/07/2025",
-      pickupActualDate: "31/07/2025", // On time
+      departure: "01/06/2024",
+      departureActualDate: "01/06/2024", // On time
+      arrival: "05/07/2024",
+      arrivalActualDate: "05/07/2024", // On time
+      delivery: "06/07/2024",
+      deliveryActualDate: "06/07/2024", // On time
+      pickup: "31/05/2024",
+      pickupActualDate: "31/05/2024", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 12000,
       volumeTeu: 4,
       containers: 3,
       costUsd: 78000,
       containerMode: "LCL",
+      emissionCo2eKg: 1001.69, // SEA + LCL
     },
     {
       id: "CP#2025-000902",
@@ -525,20 +545,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "05/08/2025",
-      departureActualDate: "06/08/2025", // 1 day delay
-      arrival: "12/09/2025",
-      arrivalActualDate: "13/09/2025", // 1 day delay
-      delivery: "14/09/2025",
-      deliveryActualDate: "16/09/2025", // 2 days delay
-      pickup: "04/08/2025",
-      pickupActualDate: "04/08/2025", // On time
+      departure: "05/08/2024",
+      departureActualDate: "06/08/2024", // 1 day delay
+      arrival: "12/09/2024",
+      arrivalActualDate: "13/09/2024", // 1 day delay
+      delivery: "14/09/2024",
+      deliveryActualDate: "16/09/2024", // 2 days delay
+      pickup: "04/08/2024",
+      pickupActualDate: "04/08/2024", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 13400,
       volumeTeu: 4,
       containers: 3,
       costUsd: 87000,
       containerMode: "LCL",
+      emissionCo2eKg: 1002.238, // SEA + LCL
     },
     {
       id: "CP#2025-000903",
@@ -546,20 +567,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "08/08/2025",
-      departureActualDate: "09/08/2025", // 1 day delay
-      arrival: "15/09/2025",
-      arrivalActualDate: "16/09/2025", // 1 day delay
-      delivery: "16/09/2025",
-      deliveryActualDate: "16/09/2025", // On time
-      pickup: "07/08/2025",
-      pickupActualDate: "08/08/2025", // 1 day delay
+      departure: "08/08/2024",
+      departureActualDate: "09/08/2024", // 1 day delay
+      arrival: "15/09/2024",
+      arrivalActualDate: "16/09/2024", // 1 day delay
+      delivery: "16/09/2024",
+      deliveryActualDate: "16/09/2024", // On time
+      pickup: "07/08/2024",
+      pickupActualDate: "08/08/2024", // 1 day delay
       tradeParty: "XYZ Shipper China",
       grossWeight: 9900,
       volumeTeu: 3,
       containers: 2,
       costUsd: 65000,
       containerMode: "LCL",
+      emissionCo2eKg: 0.91, // SEA + LCL
     },
     {
       id: "CP#2025-000904",
@@ -567,20 +589,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "12/08/2025",
-      departureActualDate: "13/08/2025", // 1 day delay
-      arrival: "20/09/2025",
-      arrivalActualDate: "22/09/2025", // 2 days delay
-      delivery: "22/09/2025",
-      deliveryActualDate: "25/09/2025", // 3 days delay
-      pickup: "11/08/2025",
-      pickupActualDate: "11/08/2025", // On time
+      departure: "12/08/2024",
+      departureActualDate: "13/08/2024", // 1 day delay
+      arrival: "20/09/2024",
+      arrivalActualDate: "22/09/2024", // 2 days delay
+      delivery: "22/09/2024",
+      deliveryActualDate: "25/09/2024", // 3 days delay
+      pickup: "11/08/2024",
+      pickupActualDate: "11/08/2024", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 14350,
       volumeTeu: 5,
       containers: 4,
       costUsd: 99000,
       containerMode: "LCL",
+      emissionCo2eKg: 1000.136, // SEA + LCL
     },
     {
       id: "CP#2025-000905",
@@ -588,20 +611,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "15/08/2025",
-      departureActualDate: "15/08/2025", // On time
-      arrival: "23/09/2025",
-      arrivalActualDate: "23/09/2025", // On time
-      delivery: "24/09/2025",
-      deliveryActualDate: "24/09/2025", // On time
-      pickup: "14/08/2025",
-      pickupActualDate: "14/08/2025", // On time
+      departure: "15/08/2024",
+      departureActualDate: "15/08/2024", // On time
+      arrival: "23/09/2024",
+      arrivalActualDate: "23/09/2024", // On time
+      delivery: "24/09/2024",
+      deliveryActualDate: "24/09/2024", // On time
+      pickup: "14/08/2024",
+      pickupActualDate: "14/08/2024", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 11800,
       volumeTeu: 4,
       containers: 3,
       costUsd: 82000,
       containerMode: "LCL",
+      emissionCo2eKg: 1001.69, // SEA + LCL
     },
     {
       id: "CP#2025-000906",
@@ -609,20 +633,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "18/08/2025",
-      departureActualDate: "19/08/2025", // 1 day delay
-      arrival: "26/09/2025",
-      arrivalActualDate: "27/09/2025", // 1 day delay
-      delivery: "28/09/2025",
-      deliveryActualDate: "29/09/2025", // 1 day delay
-      pickup: "17/08/2025",
-      pickupActualDate: "19/08/2025", // 2 days delay
+      departure: "18/08/2024",
+      departureActualDate: "19/08/2024", // 1 day delay
+      arrival: "26/09/2024",
+      arrivalActualDate: "27/09/2024", // 1 day delay
+      delivery: "28/09/2024",
+      deliveryActualDate: "29/09/2024", // 1 day delay
+      pickup: "17/08/2024",
+      pickupActualDate: "19/08/2024", // 2 days delay
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 12600,
       volumeTeu: 4,
       containers: 3,
       costUsd: 87000,
       containerMode: "LCL",
+      emissionCo2eKg: 100.291, // SEA + LCL
     },
     {
       id: "CP#2025-000907",
@@ -630,20 +655,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "21/08/2025",
-      departureActualDate: "21/08/2025", // On time
-      arrival: "29/09/2025",
-      arrivalActualDate: "29/09/2025", // On time
-      delivery: "30/09/2025",
-      deliveryActualDate: "30/09/2025", // On time
-      pickup: "20/08/2025",
-      pickupActualDate: "20/08/2025", // On time
+      departure: "21/08/2024",
+      departureActualDate: "21/08/2024", // On time
+      arrival: "29/09/2024",
+      arrivalActualDate: "29/09/2024", // On time
+      delivery: "30/09/2024",
+      deliveryActualDate: "30/09/2024", // On time
+      pickup: "20/08/2024",
+      pickupActualDate: "20/08/2024", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 10100,
       volumeTeu: 3,
       containers: 2,
       costUsd: 64000,
       containerMode: "LCL",
+      emissionCo2eKg: 0.699, // SEA + LCL
     },
     {
       id: "CP#2025-000908",
@@ -651,20 +677,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "24/08/2025",
-      departureActualDate: "25/08/2025", // 1 day delay
-      arrival: "02/10/2025",
-      arrivalActualDate: "03/10/2025", // 1 day delay
-      delivery: "04/10/2025",
-      deliveryActualDate: "06/10/2025", // 2 days delay
-      pickup: "23/08/2025",
-      pickupActualDate: "24/08/2025", // 1 day delay
+      departure: "24/08/2024",
+      departureActualDate: "25/08/2024", // 1 day delay
+      arrival: "02/10/2024",
+      arrivalActualDate: "03/10/2024", // 1 day delay
+      delivery: "04/10/2024",
+      deliveryActualDate: "06/10/2024", // 2 days delay
+      pickup: "23/08/2024",
+      pickupActualDate: "24/08/2024", // 1 day delay
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 13900,
       volumeTeu: 5,
       containers: 4,
       costUsd: 101000,
       containerMode: "LCL",
+      emissionCo2eKg: 1002.238, // SEA + LCL
     },
     {
       id: "CP#2025-000909",
@@ -672,20 +699,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "27/08/2025",
-      departureActualDate: "27/08/2025", // On time
-      arrival: "05/10/2025",
-      arrivalActualDate: "05/10/2025", // On time
-      delivery: "06/10/2025",
-      deliveryActualDate: "06/10/2025", // On time
-      pickup: "26/08/2025",
-      pickupActualDate: "26/08/2025", // On time
+      departure: "27/08/2024",
+      departureActualDate: "27/08/2024", // On time
+      arrival: "05/10/2024",
+      arrivalActualDate: "05/10/2024", // On time
+      delivery: "06/10/2024",
+      deliveryActualDate: "06/10/2024", // On time
+      pickup: "26/08/2024",
+      pickupActualDate: "26/08/2024", // On time
       tradeParty: "XYZ Shipper China",
       grossWeight: 11500,
       volumeTeu: 4,
       containers: 3,
       costUsd: 79000,
       containerMode: "LCL",
+      emissionCo2eKg: 1001.69, // SEA + LCL
     },
     {
       id: "CP#2025-000910",
@@ -693,20 +721,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "30/08/2025",
-      departureActualDate: "31/08/2025", // 1 day delay
-      arrival: "08/10/2025",
-      arrivalActualDate: "09/10/2025", // 1 day delay
-      delivery: "10/10/2025",
-      deliveryActualDate: "12/10/2025", // 2 days delay
-      pickup: "29/08/2025",
-      pickupActualDate: "29/08/2025", // On time
+      departure: "30/08/2024",
+      departureActualDate: "31/08/2024", // 1 day delay
+      arrival: "08/10/2024",
+      arrivalActualDate: "09/10/2024", // 1 day delay
+      delivery: "10/10/2024",
+      deliveryActualDate: "12/10/2024", // 2 days delay
+      pickup: "29/08/2024",
+      pickupActualDate: "29/08/2024", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 13200,
       volumeTeu: 4,
       containers: 3,
       costUsd: 88000,
       containerMode: "FCL",
+      emissionCo2eKg: 100.291, // SEA + FCL
     },
     {
       id: "CP#2025-000911",
@@ -714,20 +743,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
-      departure: "02/09/2025",
-      departureActualDate: "03/09/2025", // 1 day delay
-      arrival: "10/10/2025",
-      arrivalActualDate: "11/10/2025", // 1 day delay
-      delivery: "12/10/2025",
-      deliveryActualDate: "12/10/2025", // On time
-      pickup: "01/09/2025",
-      pickupActualDate: "02/09/2025", // 1 day delay
+      departure: "02/09/2024",
+      departureActualDate: "03/09/2024", // 1 day delay
+      arrival: "10/10/2024",
+      arrivalActualDate: "11/10/2024", // 1 day delay
+      delivery: "12/10/2024",
+      deliveryActualDate: "12/10/2024", // On time
+      pickup: "01/09/2024",
+      pickupActualDate: "02/09/2024", // 1 day delay
       tradeParty: "XYZ Shipper China",
       grossWeight: 12300,
       volumeTeu: 4,
       containers: 3,
       costUsd: 84000,
       containerMode: "LCL",
+      emissionCo2eKg: 1001.69, // SEA + LCL
     },
     {
       id: "CP#2025-000912",
@@ -735,20 +765,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
-      departure: "05/09/2025",
-      departureActualDate: "05/09/2025", // On time
-      arrival: "14/10/2025",
-      arrivalActualDate: "15/10/2025", // 1 day delay
-      delivery: "16/10/2025",
-      deliveryActualDate: "18/10/2025", // 2 days delay
-      pickup: "04/09/2025",
-      pickupActualDate: "04/09/2025", // On time
+      departure: "05/09/2024",
+      departureActualDate: "05/09/2024", // On time
+      arrival: "14/10/2024",
+      arrivalActualDate: "15/10/2024", // 1 day delay
+      delivery: "16/10/2024",
+      deliveryActualDate: "18/10/2024", // 2 days delay
+      pickup: "04/09/2024",
+      pickupActualDate: "04/09/2024", // On time
       tradeParty: "ABC Buyer New Zealand",
       grossWeight: 13600,
       volumeTeu: 4,
       containers: 3,
       costUsd: 91000,
       containerMode: "LCL",
+      emissionCo2eKg: 1000.136, // SEA + LCL
     },
     {
       id: "CP#2025-000913",
@@ -756,20 +787,21 @@ export const shipmentData = {
       origin: "N/A",
       route: "Incheon → Seattle",
       transportMode: "Air" as TransportMode,
-      departure: "15/08/2025",
-      departureActualDate: "15/08/2025", // On time
-      arrival: "16/08/2025",
-      arrivalActualDate: "16/08/2025", // On time
-      delivery: "17/08/2025",
-      deliveryActualDate: "17/08/2025", // On time
-      pickup: "14/08/2025",
-      pickupActualDate: "14/08/2025", // On time
+      departure: "15/08/2024",
+      departureActualDate: "15/08/2024", // On time
+      arrival: "16/08/2024",
+      arrivalActualDate: "16/08/2024", // On time
+      delivery: "17/08/2024",
+      deliveryActualDate: "17/08/2024", // On time
+      pickup: "14/08/2024",
+      pickupActualDate: "14/08/2024", // On time
       tradeParty: "Everfast Electronics",
       grossWeight: 2800,
       volumeTeu: 1,
       containers: 0,
       costUsd: 36000,
       containerMode: "LSE",
+      emissionCo2eKg: 0.99, // AIR + LSE
     },
     {
       id: "CP#2025-000914",
@@ -777,22 +809,177 @@ export const shipmentData = {
       origin: "N/A",
       route: "Prague → Amsterdam",
       transportMode: "Road" as TransportMode,
-      departure: "09/09/2025",
-      departureActualDate: "10/09/2025", // 1 day delay
-      arrival: "12/09/2025",
-      arrivalActualDate: "13/09/2025", // 1 day delay
-      delivery: "12/09/2025",
-      deliveryActualDate: "13/09/2025", // 1 day delay
-      pickup: "08/09/2025",
-      pickupActualDate: "09/09/2025", // 1 day delay
+      departure: "09/09/2024",
+      departureActualDate: "10/09/2024", // 1 day delay
+      arrival: "12/09/2024",
+      arrivalActualDate: "13/09/2024", // 1 day delay
+      delivery: "12/09/2024",
+      deliveryActualDate: "13/09/2024", // 1 day delay
+      pickup: "08/09/2024",
+      pickupActualDate: "09/09/2024", // 1 day delay
       tradeParty: "Nordic Furniture",
       grossWeight: 6200,
       volumeTeu: 2,
       containers: 0,
       costUsd: 19000,
       containerMode: "LTL",
+      emissionCo2eKg: 0.367, // ROA + LTL
+    },
+    {
+      id: "CP#2025-000915",
+      status: "Delivered",
+      origin: "N/A",
+      route: "Shanghai → Rotterdam",
+      transportMode: "Sea" as TransportMode,
+      departure: "15/01/2024",
+      departureActualDate: "16/01/2024",
+      arrival: "20/02/2024",
+      arrivalActualDate: "21/02/2024",
+      delivery: "22/02/2024",
+      deliveryActualDate: "23/02/2024",
+      pickup: "14/01/2024",
+      pickupActualDate: "14/01/2024",
+      tradeParty: "Delta Manufacturing",
+      grossWeight: 10800,
+      volumeTeu: 3,
+      containers: 2,
+      costUsd: 72000,
+      containerMode: "LCL",
+      emissionCo2eKg: 1000.136,
+    },
+    {
+      id: "CP#2025-000916",
+      status: "Delivered",
+      origin: "N/A",
+      route: "Rotterdam → New York",
+      transportMode: "Air" as TransportMode,
+      departure: "04/02/2024",
+      departureActualDate: "04/02/2024",
+      arrival: "05/02/2024",
+      arrivalActualDate: "05/02/2024",
+      delivery: "06/02/2024",
+      deliveryActualDate: "06/02/2024",
+      pickup: "03/02/2024",
+      pickupActualDate: "03/02/2024",
+      tradeParty: "Skyline Retail",
+      grossWeight: 2400,
+      volumeTeu: 1,
+      containers: 0,
+      costUsd: 31000,
+      containerMode: "LSE",
+      emissionCo2eKg: 0.515,
+    },
+    {
+      id: "CP#2025-000917",
+      status: "Delivered",
+      origin: "N/A",
+      route: "Warsaw → Paris",
+      transportMode: "Road" as TransportMode,
+      departure: "12/03/2024",
+      departureActualDate: "12/03/2024",
+      arrival: "15/03/2024",
+      arrivalActualDate: "15/03/2024",
+      delivery: "16/03/2024",
+      deliveryActualDate: "16/03/2024",
+      pickup: "11/03/2024",
+      pickupActualDate: "11/03/2024",
+      tradeParty: "EuroTech Distribution",
+      grossWeight: 6400,
+      volumeTeu: 2,
+      containers: 0,
+      costUsd: 18500,
+      containerMode: "LTL",
+      emissionCo2eKg: 0.139,
+    },
+    {
+      id: "CP#2025-000918",
+      status: "Delivered",
+      origin: "N/A",
+      route: "Busan → Los Angeles",
+      transportMode: "Sea" as TransportMode,
+      departure: "08/04/2024",
+      departureActualDate: "09/04/2024",
+      arrival: "14/05/2024",
+      arrivalActualDate: "15/05/2024",
+      delivery: "17/05/2024",
+      deliveryActualDate: "18/05/2024",
+      pickup: "07/04/2024",
+      pickupActualDate: "07/04/2024",
+      tradeParty: "Pacific Components",
+      grossWeight: 14200,
+      volumeTeu: 5,
+      containers: 4,
+      costUsd: 103000,
+      containerMode: "FCL",
+      emissionCo2eKg: 100.291,
+    },
+    {
+      id: "CP#2025-000919",
+      status: "Delivered",
+      origin: "N/A",
+      route: "Chicago → Toronto",
+      transportMode: "Road" as TransportMode,
+      departure: "05/05/2024",
+      departureActualDate: "05/05/2024",
+      arrival: "07/05/2024",
+      arrivalActualDate: "07/05/2024",
+      delivery: "08/05/2024",
+      deliveryActualDate: "08/05/2024",
+      pickup: "04/05/2024",
+      pickupActualDate: "04/05/2024",
+      tradeParty: "Northwind Logistics",
+      grossWeight: 7100,
+      volumeTeu: 2,
+      containers: 0,
+      costUsd: 21000,
+      containerMode: "FTL",
+      emissionCo2eKg: 0.367,
+    },
+    {
+      id: "CP#2025-000920",
+      status: "Delivered",
+      origin: "N/A",
+      route: "Delhi → Frankfurt",
+      transportMode: "Air" as TransportMode,
+      departure: "28/05/2024",
+      departureActualDate: "28/05/2024",
+      arrival: "29/05/2024",
+      arrivalActualDate: "29/05/2024",
+      delivery: "30/05/2024",
+      deliveryActualDate: "30/05/2024",
+      pickup: "27/05/2024",
+      pickupActualDate: "27/05/2024",
+      tradeParty: "AeroSpare Parts",
+      grossWeight: 2600,
+      volumeTeu: 1,
+      containers: 0,
+      costUsd: 33000,
+      containerMode: "LSE",
+      emissionCo2eKg: 0.515,
     },
   ] as Shipment[],
+};
+
+// Helper function to ensure all in-transit and completed shipments have emission data
+const addEmissionData = (shipments: Shipment[]): Shipment[] => {
+  return shipments.map((shipment) => {
+    // Only add emission data if it doesn't exist (for in-transit and completed)
+    if (shipment.emissionCo2eKg === undefined) {
+      return {
+        ...shipment,
+        emissionCo2eKg: getEmissionValue(shipment.transportMode, shipment.containerMode),
+      };
+    }
+    return shipment;
+  });
+};
+
+// Process shipment data to ensure emissions are present for in-transit and completed
+// Only in-transit and completed shipments get emission data, pending shipments do not
+export const shipmentData = {
+  inTransit: addEmissionData(rawShipmentData.inTransit),
+  pending: rawShipmentData.pending, // Pending shipments should NOT have emission data
+  completed: addEmissionData(rawShipmentData.completed),
 };
 
 export const filterShipmentsByMode = (shipments: Shipment[], filter: TransportFilter) => {
