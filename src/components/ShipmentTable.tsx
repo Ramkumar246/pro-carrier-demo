@@ -1,8 +1,7 @@
 import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { ModuleRegistry, AllCommunityModule ,themeQuartz} from 'ag-grid-community';
-import { AllEnterpriseModule, IntegratedChartsModule, LicenseManager } from 'ag-grid-enterprise';
-import { AgChartsEnterpriseModule } from 'ag-charts-enterprise';
+import { AllEnterpriseModule, LicenseManager } from 'ag-grid-enterprise';
 import type { ColDef, GridReadyEvent, GridApi } from 'ag-grid-community';
 // import 'ag-grid-community/styles/ag-grid.css';
 // import 'ag-grid-community/styles/ag-theme-quartz.css';
@@ -15,28 +14,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  ResponsiveContainer,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Bar,
-  Cell,
-  PieChart,
-  Pie,
-  Legend,
-  ScatterChart,
-  Scatter,
-  ZAxis,
-  LineChart,
-  Line,
-} from "recharts";
+import * as am5 from "@amcharts/amcharts5";
+import * as am5xy from "@amcharts/amcharts5/xy";
+import * as am5percent from "@amcharts/amcharts5/percent";
+import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import type { Shipment } from "@/types/shipment";
 import type { DelayStage } from "@/lib/delay-utils";
 import { getStageDelay } from "@/lib/delay-utils";
+import { getCSSVariableColor } from "@/lib/chart-colors";
 
 const DELAY_STAGES: DelayStage[] = ["pickup", "departure", "arrival", "delivery"];
 const STAGE_LABEL: Record<DelayStage, string> = {
@@ -110,11 +96,10 @@ const TRANSPORT_MODE_COLORS: Record<string, string> = {
   Road: "#39c7c4", // teal
 };
 
-// Register AG Grid Community + Enterprise modules with Charts
+// Register AG Grid Community + Enterprise modules
 ModuleRegistry.registerModules([
   AllCommunityModule,
   AllEnterpriseModule,
-  IntegratedChartsModule.with(AgChartsEnterpriseModule)
 ]);
 
 // Set up license key placeholder so enterprise watermark is displayed until replaced
@@ -171,6 +156,106 @@ const DelayCellRenderer = (props: any) => {
 };
 
 const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
+  const chartRef = useRef<am5xy.XYChart | null>(null);
+  const rootRef = useRef<am5.Root | null>(null);
+  const chartIdRef = useRef(`delayChart-${Math.random().toString(36).substr(2, 9)}`);
+
+  useEffect(() => {
+    if (!data.length) return;
+
+    const root = am5.Root.new(chartIdRef.current);
+    rootRef.current = root;
+
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    // Get colors from CSS variables
+    const cardColor = getCSSVariableColor("--card");
+    const borderColor = getCSSVariableColor("--border");
+    const foregroundColor = getCSSVariableColor("--foreground");
+
+    const chart = root.container.children.push(
+      am5xy.XYChart.new(root, {
+        panX: false,
+        panY: false,
+        wheelX: "panX",
+        wheelY: "zoomX",
+        layout: root.verticalLayout,
+      })
+    );
+    chartRef.current = chart;
+
+    const xAxis = chart.xAxes.push(
+      am5xy.CategoryAxis.new(root, {
+        categoryField: "label",
+        renderer: am5xy.AxisRendererX.new(root, {
+          cellStartLocation: 0.1,
+          cellEndLocation: 0.9,
+        }),
+      })
+    );
+
+    const yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {}),
+        min: 0,
+      })
+    );
+
+    const series = chart.series.push(
+      am5xy.ColumnSeries.new(root, {
+        name: "Delay",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "delay",
+        categoryXField: "label",
+      })
+    );
+
+    series.columns.template.setAll({
+      cornerRadiusTL: 4,
+      cornerRadiusTR: 4,
+      strokeOpacity: 0,
+      tooltipText: "{categoryX}: {valueY} days",
+    });
+
+    series.columns.template.adapters.add("fill", (fill, target) => {
+      const dataItem = target.dataItem;
+      if (dataItem) {
+        const stage = (dataItem.dataContext as DelayChartDatum).stage;
+        return am5.color(STAGE_COLOR[stage]);
+      }
+      return fill;
+    });
+
+    series.data.setAll(data);
+    xAxis.data.setAll(data);
+
+    const cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
+    cursor.lineX.setAll({ strokeOpacity: 0.1 });
+    cursor.lineY.setAll({ strokeOpacity: 0.1 });
+
+    const tooltip = am5.Tooltip.new(root, {
+      getFillFromSprite: false,
+    });
+    tooltip.get("background")?.setAll({
+      fill: am5.color(cardColor),
+      fillOpacity: 1,
+      stroke: am5.color(borderColor),
+      strokeWidth: 1,
+    });
+    tooltip.label.setAll({
+      fill: am5.color(foregroundColor),
+    });
+    series.set("tooltip", tooltip);
+
+    series.appear(1000);
+    chart.appear(1000, 100);
+
+    return () => {
+      root.dispose();
+    };
+  }, [data]);
+
   if (!data.length) {
     return (
       <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -178,11 +263,6 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
       </div>
     );
   }
-
-  const maxDelay = Math.max(...data.map((entry) => entry.delay), 0);
-  const upperBound = Math.max(5, Math.ceil(maxDelay));
-  const ticks =
-    upperBound > 0 ? Array.from({ length: upperBound }, (_, index) => index + 1) : [1, 2, 3, 4, 5];
 
   return (
     <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -193,48 +273,99 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
         </p>
       </div>
       <div className="h-[320px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 8, bottom: 8, left: 16, right: 16 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-              interval={0}
-            />
-            <YAxis
-              type="number"
-              ticks={ticks}
-              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-              label={{
-                value: "Delay (days)",
-                angle: -90,
-                position: "insideLeft",
-                offset: 10,
-                fill: "hsl(var(--muted-foreground))",
-              }}
-              domain={[0, Math.max(...ticks)]}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "0.5rem",
-              }}
-              formatter={(value: number) => [`${value.toFixed(2)} days`, "Delay"]}
-            />
-            <Bar dataKey="delay" radius={[4, 4, 0, 0]} barSize={36}>
-              {data.map((entry) => (
-                <Cell key={entry.stage} fill={STAGE_COLOR[entry.stage]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div id={chartIdRef.current} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
   );
 };
 
 const ContainerModePieChart = ({ data, activeFilter }: { data: ContainerMixDatum[]; activeFilter?: "All" | "Sea" | "Air" | "Road" }) => {
+  const chartRef = useRef<am5percent.PieChart | null>(null);
+  const rootRef = useRef<am5.Root | null>(null);
+  const chartIdRef = useRef(`containerPieChart-${Math.random().toString(36).substr(2, 9)}`);
+
+  const getColor = (mode: string) => {
+    return CONTAINER_MODE_COLORS[mode] || getCSSVariableColor("--muted-foreground");
+  };
+
+  useEffect(() => {
+    if (!data.length) return;
+
+    const root = am5.Root.new(chartIdRef.current);
+    rootRef.current = root;
+
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    // Get colors from CSS variables
+    const cardColor = getCSSVariableColor("--card");
+    const borderColor = getCSSVariableColor("--border");
+    const foregroundColor = getCSSVariableColor("--foreground");
+
+    const chart = root.container.children.push(
+      am5percent.PieChart.new(root, {
+        layout: root.verticalLayout,
+      })
+    );
+    chartRef.current = chart;
+
+    const series = chart.series.push(
+      am5percent.PieSeries.new(root, {
+        valueField: "value",
+        categoryField: "label",
+      })
+    );
+
+    series.slices.template.setAll({
+      strokeWidth: 0,
+      tooltipText: "{category}: {value} shipments",
+    });
+
+    series.data.setAll(
+      data.map((entry) => ({
+        label: entry.label,
+        value: entry.value,
+        fill: am5.color(getColor(entry.mode)),
+      }))
+    );
+
+    series.labels.template.setAll({
+      textType: "circular",
+      centerX: 0,
+      centerY: 0,
+    });
+
+    const tooltip = am5.Tooltip.new(root, {
+      getFillFromSprite: false,
+    });
+    tooltip.get("background")?.setAll({
+      fill: am5.color(cardColor),
+      fillOpacity: 1,
+      stroke: am5.color(borderColor),
+      strokeWidth: 1,
+    });
+    tooltip.label.setAll({
+      fill: am5.color(foregroundColor),
+    });
+    series.set("tooltip", tooltip);
+
+    const legend = chart.children.push(
+      am5.Legend.new(root, {
+        centerX: am5.p50,
+        x: am5.p50,
+        marginTop: 15,
+        marginBottom: 15,
+      })
+    );
+    legend.data.setAll(series.dataItems);
+
+    series.appear(1000, 100);
+    chart.appear(1000, 100);
+
+    return () => {
+      root.dispose();
+    };
+  }, [data]);
+
   if (!data.length) {
     return (
       <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -242,11 +373,6 @@ const ContainerModePieChart = ({ data, activeFilter }: { data: ContainerMixDatum
       </div>
     );
   }
-
-  // Use brand colors from delay chart
-  const getColor = (mode: string) => {
-    return CONTAINER_MODE_COLORS[mode] || "hsl(var(--muted-foreground))";
-  };
 
   return (
     <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -257,37 +383,145 @@ const ContainerModePieChart = ({ data, activeFilter }: { data: ContainerMixDatum
         </p>
       </div>
       <div className="h-[340px] w-full pt-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "0.5rem",
-              }}
-              formatter={(value: number, name: string) => [`${value} shipments`, name]}
-            />
-            <Legend />
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="label"
-              cx="50%"
-              cy="50%"
-              outerRadius={110}
-            >
-              {data.map((entry) => (
-                <Cell key={entry.mode} fill={getColor(entry.mode)} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+        <div id={chartIdRef.current} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
   );
 };
 
 const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: TransportModeDatum[] }) => {
+  const chartRef = useRef<am5percent.PieChart | null>(null);
+  const rootRef = useRef<am5.Root | null>(null);
+  const chartIdRef = useRef(`containerDonutChart-${Math.random().toString(36).substr(2, 9)}`);
+
+  const getContainerColor = (mode: string) => {
+    return CONTAINER_MODE_COLORS[mode] || getCSSVariableColor("--muted-foreground");
+  };
+
+  const getTransportColor = (mode: string) => {
+    return TRANSPORT_MODE_COLORS[mode] || getCSSVariableColor("--muted-foreground");
+  };
+
+  useEffect(() => {
+    if (!transportData.length) return;
+
+    const root = am5.Root.new(chartIdRef.current);
+    rootRef.current = root;
+
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    // Get colors from CSS variables
+    const cardColor = getCSSVariableColor("--card");
+    const borderColor = getCSSVariableColor("--border");
+    const foregroundColor = getCSSVariableColor("--foreground");
+
+    const chart = root.container.children.push(
+      am5percent.PieChart.new(root, {
+        layout: root.verticalLayout,
+      })
+    );
+    chartRef.current = chart;
+
+    // Inner ring - Transport modes
+    const transportSeries = chart.series.push(
+      am5percent.PieSeries.new(root, {
+        valueField: "value",
+        categoryField: "label",
+        innerRadius: am5.percent(40),
+        radius: am5.percent(65),
+      })
+    );
+
+    transportSeries.slices.template.setAll({
+      strokeWidth: 0,
+      tooltipText: "{category}: {value} shipments",
+    });
+
+    transportSeries.data.setAll(
+      transportData.map((entry) => ({
+        label: entry.label,
+        value: entry.value,
+        fill: am5.color(getTransportColor(entry.mode)),
+      }))
+    );
+
+    transportSeries.labels.template.setAll({
+      textType: "circular",
+      centerX: 0,
+      centerY: 0,
+      fill: am5.color("#ffffff"),
+      fontSize: 12,
+      fontWeight: "600",
+    });
+
+    // Outer ring - Container modes
+    const containerSeries = chart.series.push(
+      am5percent.PieSeries.new(root, {
+        valueField: "value",
+        categoryField: "label",
+        innerRadius: am5.percent(70),
+        radius: am5.percent(90),
+      })
+    );
+
+    const allContainerData: Array<ContainerMixDatum & { transportMode: string }> = [];
+    transportData.forEach((transport) => {
+      if (transport.containerModes) {
+        transport.containerModes.forEach((container) => {
+          allContainerData.push({
+            ...container,
+            transportMode: transport.mode,
+          });
+        });
+      }
+    });
+
+    containerSeries.slices.template.setAll({
+      strokeWidth: 0,
+      tooltipText: "{category}: {value} shipments",
+    });
+
+    containerSeries.data.setAll(
+      allContainerData.map((entry) => ({
+        label: entry.label,
+        value: entry.value,
+        fill: am5.color(getContainerColor(entry.mode)),
+      }))
+    );
+
+    containerSeries.labels.template.setAll({
+      textType: "circular",
+      centerX: 0,
+      centerY: 0,
+      fill: am5.color("#ffffff"),
+      fontSize: 11,
+      fontWeight: "500",
+    });
+
+    const tooltip = am5.Tooltip.new(root, {
+      getFillFromSprite: false,
+    });
+    tooltip.get("background")?.setAll({
+      fill: am5.color(cardColor),
+      fillOpacity: 1,
+      stroke: am5.color(borderColor),
+      strokeWidth: 1,
+    });
+    tooltip.label.setAll({
+      fill: am5.color(foregroundColor),
+    });
+    transportSeries.set("tooltip", tooltip);
+    containerSeries.set("tooltip", tooltip);
+
+    transportSeries.appear(1000, 100);
+    containerSeries.appear(1000, 100);
+    chart.appear(1000, 100);
+
+    return () => {
+      root.dispose();
+    };
+  }, [transportData]);
+
   if (!transportData.length) {
     return (
       <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -295,94 +529,6 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
       </div>
     );
   }
-
-  const getContainerColor = (mode: string) => {
-    return CONTAINER_MODE_COLORS[mode] || "hsl(var(--muted-foreground))";
-  };
-
-  const getTransportColor = (mode: string) => {
-    return TRANSPORT_MODE_COLORS[mode] || "hsl(var(--muted-foreground))";
-  };
-
-  // Calculate total for angle calculations
-  const total = transportData.reduce((sum, entry) => sum + entry.value, 0);
-  
-  // Build hierarchical data structure with calculated angles
-  // Start at top (12 o'clock = 90 degrees in Recharts coordinate system)
-  const startAngle = 90;
-  const paddingAngleDegrees = 2; // paddingAngle in degrees for inner ring
-  const containerPaddingAngle = 1; // paddingAngle in degrees for outer ring
-  
-  // Calculate angles for inner ring (transport modes)
-  let cumulativeAngle = startAngle;
-  const transportAngles = transportData.map((entry, index) => {
-    // Calculate the proportional angle for this transport mode
-    const proportionalAngle = (entry.value / total) * 360;
-    
-    // For the first segment, start at startAngle
-    // For subsequent segments, account for padding from previous segment
-    const segmentStartAngle = index === 0 ? cumulativeAngle : cumulativeAngle + paddingAngleDegrees;
-    
-    // Calculate the actual angle span (accounting for padding)
-    // The last segment doesn't need to account for padding at the end
-    const actualAngle = index === transportData.length - 1 
-      ? proportionalAngle - (index * paddingAngleDegrees)
-      : proportionalAngle - paddingAngleDegrees;
-    
-    const segmentEndAngle = segmentStartAngle + actualAngle;
-    
-    // Update cumulative angle for next segment
-    cumulativeAngle = segmentEndAngle;
-    
-    return {
-      ...entry,
-      startAngle: segmentStartAngle,
-      endAngle: segmentEndAngle,
-      angle: actualAngle, // Store the actual angle span for container mode calculations
-    };
-  });
-
-  // Build flattened container mode data with calculated angles for nested positioning
-  // Container modes must fit exactly within their parent transport mode's angular span
-  const containerSegments: Array<ContainerMixDatum & { startAngle: number; endAngle: number; transportMode: string }> = [];
-  
-  transportAngles.forEach((transport) => {
-    if (!transport.containerModes || transport.containerModes.length === 0) return;
-    
-    // Calculate total container mode count for this transport mode
-    const containerTotal = transport.containerModes.reduce((sum, c) => sum + c.value, 0);
-    
-    // Container modes must fit within the transport mode's angle range
-    // Start from the transport mode's startAngle
-    let containerCumulativeAngle = transport.startAngle;
-    const numContainers = transport.containerModes.length;
-    
-    transport.containerModes.forEach((container, containerIndex) => {
-      // Calculate proportional angle within the transport mode's available angle
-      // The available angle is the transport mode's angle minus padding for container segments
-      const totalContainerPadding = (numContainers - 1) * containerPaddingAngle;
-      const availableAngle = transport.angle - totalContainerPadding;
-      
-      const containerProportionalAngle = (container.value / containerTotal) * availableAngle;
-      
-      // Calculate start and end angles for this container segment
-      const containerStartAngle = containerIndex === 0 
-        ? containerCumulativeAngle 
-        : containerCumulativeAngle + containerPaddingAngle;
-      
-      const containerEndAngle = containerStartAngle + containerProportionalAngle;
-      
-      // Update cumulative angle for next container segment
-      containerCumulativeAngle = containerEndAngle;
-      
-      containerSegments.push({
-        ...container,
-        startAngle: containerStartAngle,
-        endAngle: containerEndAngle,
-        transportMode: transport.mode,
-      });
-    });
-  });
 
   return (
     <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -393,108 +539,129 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
         </p>
       </div>
       <div className="h-[400px] w-full pt-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "0.5rem",
-              }}
-              formatter={(value: number, name: string) => [`${value} shipments`, name]}
-            />
-            {/* Inner ring - Transport modes */}
-            <Pie
-              data={transportData}
-              dataKey="value"
-              nameKey="label"
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={2}
-              stroke="none"
-              cornerRadius={4}
-              label={(props: any) => {
-                const { cx, cy, midAngle, innerRadius, outerRadius, name } = props;
-                const RADIAN = Math.PI / 180;
-                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                
-                return (
-                  <text
-                    x={x}
-                    y={y}
-                    fill="white"
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize={12}
-                    fontWeight={600}
-                  >
-                    {name}
-                  </text>
-                );
-              }}
-            >
-              {transportData.map((entry) => (
-                <Cell key={entry.mode} fill={getTransportColor(entry.mode)} stroke="none" />
-              ))}
-            </Pie>
-            {/* Outer ring - Container modes nested within transport modes */}
-            {containerSegments.map((segment, idx) => {
-              // Calculate mid angle for this segment
-              const segmentMidAngle = (segment.startAngle + segment.endAngle) / 2;
-              
-              return (
-                <Pie
-                  key={`${segment.transportMode}-${segment.mode}-${idx}`}
-                  data={[segment]}
-                  dataKey="value"
-                  nameKey="label"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={110}
-                  outerRadius={140}
-                  startAngle={segment.startAngle}
-                  endAngle={segment.endAngle}
-                  paddingAngle={1}
-                  stroke="none"
-                  cornerRadius={4}
-                  label={(props: any) => {
-                    const { cx, cy, innerRadius, outerRadius } = props;
-                    const RADIAN = Math.PI / 180;
-                    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                    const x = cx + radius * Math.cos(-segmentMidAngle * RADIAN);
-                    const y = cy + radius * Math.sin(-segmentMidAngle * RADIAN);
-                    
-                    return (
-                      <text
-                        x={x}
-                        y={y}
-                        fill="white"
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fontSize={11}
-                        fontWeight={500}
-                      >
-                        {segment.label}
-                      </text>
-                    );
-                  }}
-                >
-                  <Cell fill={getContainerColor(segment.mode)} stroke="none" />
-                </Pie>
-              );
-            })}
-          </PieChart>
-        </ResponsiveContainer>
+        <div id={chartIdRef.current} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
   );
 };
 
 const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
+  const chartRef = useRef<am5xy.XYChart | null>(null);
+  const rootRef = useRef<am5.Root | null>(null);
+  const chartIdRef = useRef(`tradePartyChart-${Math.random().toString(36).substr(2, 9)}`);
+
+  useEffect(() => {
+    if (!data.length) return;
+
+    const root = am5.Root.new(chartIdRef.current);
+    rootRef.current = root;
+
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    // Get colors from CSS variables
+    const primaryColor = getCSSVariableColor("--primary");
+    const cardColor = getCSSVariableColor("--card");
+    const borderColor = getCSSVariableColor("--border");
+    const foregroundColor = getCSSVariableColor("--foreground");
+
+    const chart = root.container.children.push(
+      am5xy.XYChart.new(root, {
+        panX: false,
+        panY: false,
+        wheelX: "panX",
+        wheelY: "zoomX",
+        layout: root.verticalLayout,
+      })
+    );
+    chartRef.current = chart;
+
+    const xAxis = chart.xAxes.push(
+      am5xy.CategoryAxis.new(root, {
+        categoryField: "tradeParty",
+        renderer: am5xy.AxisRendererX.new(root, {
+          cellStartLocation: 0.1,
+          cellEndLocation: 0.9,
+          minGridDistance: 30,
+        }),
+      })
+    );
+
+    xAxis.get("renderer").labels.template.setAll({
+      rotation: -45,
+      centerY: am5.p100,
+      centerX: am5.p0,
+      paddingRight: 15,
+    });
+
+    const yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {}),
+        min: 0,
+      })
+    );
+
+    const series = chart.series.push(
+      am5xy.LineSeries.new(root, {
+        name: "Total Cost (USD)",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "cost",
+        categoryXField: "tradeParty",
+        stroke: am5.color(primaryColor),
+        fill: am5.color(primaryColor),
+      })
+    );
+
+    series.strokes.template.setAll({
+      strokeWidth: 3,
+    });
+
+    series.bullets.push(() => {
+      return am5.Bullet.new(root, {
+        sprite: am5.Circle.new(root, {
+          radius: 6,
+          fill: am5.color(primaryColor),
+        }),
+      });
+    });
+
+    series.data.setAll(data);
+    xAxis.data.setAll(data);
+
+    const cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
+    cursor.lineX.setAll({ strokeOpacity: 0.1 });
+    cursor.lineY.setAll({ strokeOpacity: 0.1 });
+
+    const tooltip = am5.Tooltip.new(root, {
+      getFillFromSprite: false,
+    });
+    tooltip.get("background")?.setAll({
+      fill: am5.color(cardColor),
+      fillOpacity: 1,
+      stroke: am5.color(borderColor),
+      strokeWidth: 1,
+    });
+    tooltip.label.setAll({
+      fill: am5.color(foregroundColor),
+    });
+    tooltip.label.adapters.add("text", (text, target) => {
+      const dataItem = target.dataItem;
+      if (dataItem) {
+        const dataContext = dataItem.dataContext as TradePartyCostDatum;
+        return `Trade Party: ${dataContext.tradeParty}\nTotal Cost: $${Number(dataContext.cost).toLocaleString()}\nShipments: ${dataContext.shipmentCount}`;
+      }
+      return text;
+    });
+    series.set("tooltip", tooltip);
+
+    series.appear(1000);
+    chart.appear(1000, 100);
+
+    return () => {
+      root.dispose();
+    };
+  }, [data]);
+
   if (!data.length) {
     return (
       <div className="mt-4 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -502,20 +669,6 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
       </div>
     );
   }
-
-  const maxCost = Math.max(...data.map((d) => d.cost), 0);
-  const brandColors = [
-    "hsl(var(--primary))",
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-    "hsl(var(--chart-4))",
-    "hsl(var(--chart-5))",
-    "#4b39ef",
-    "#39bdf8",
-    "#f97316",
-    "#10b981",
-  ];
 
   return (
     <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-sm trade-party-chart">
@@ -526,99 +679,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
         </p>
       </div>
       <div className="h-[400px] w-full pt-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 10, right: 10, bottom: 60, left: 50 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="tradeParty"
-              name="Trade Party"
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              interval={0}
-              label={{
-                value: "Trade Party",
-                position: "insideBottom",
-                offset: -5,
-                fill: "hsl(var(--muted-foreground))",
-                style: { fontSize: 12 },
-              }}
-            />
-            <YAxis
-              type="number"
-              dataKey="cost"
-              name="Total Cost (USD)"
-              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-              tickFormatter={(value) => {
-                return Number(value).toFixed(2);
-              }}
-              label={{
-                value: "Total Cost (USD)",
-                angle: -90,
-                position: "insideLeft",
-                offset: 0,
-                fill: "hsl(var(--muted-foreground))",
-                style: { fontSize: 12 },
-              }}
-              domain={[0, maxCost * 1.1]}
-              width={50}
-            />
-            <Tooltip
-              cursor={{ strokeDasharray: "3 3" }}
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "0.5rem",
-                padding: "8px 12px",
-              }}
-              formatter={(value: number, name: string, props: any) => {
-                if (name === "Total Cost (USD)") {
-                  return [`$${Number(value || 0).toLocaleString()}`, "Total Cost"];
-                }
-                if (name === "Shipment Count" && props?.payload) {
-                  return [`${props.payload.shipmentCount || 0} shipments`, "Count"];
-                }
-                return [value || 0, name];
-              }}
-              labelFormatter={(label) => {
-                return label || "Trade Party";
-              }}
-            />
-            <Legend 
-              wrapperStyle={{ paddingTop: '20px' }}
-              verticalAlign="bottom"
-            />
-            <Line
-              type="monotone"
-              dataKey="cost"
-              name="Total Cost (USD)"
-              stroke={brandColors[0]}
-              strokeWidth={3}
-              dot={{ fill: brandColors[0], r: 6 }}
-              activeDot={{ r: 8 }}
-              label={(props: any) => {
-                const { x, y, payload, value } = props;
-                if (!payload || (payload.cost === undefined && value === undefined)) {
-                  return null;
-                }
-                const costValue = payload?.cost ?? value ?? 0;
-                return (
-                  <text
-                    x={x}
-                    y={y - 10}
-                    fill="hsl(var(--foreground))"
-                    fontSize={10}
-                    fontWeight={500}
-                    textAnchor="middle"
-                  >
-                    ${Number(costValue).toLocaleString()}
-                  </text>
-                );
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div id={chartIdRef.current} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
   );
@@ -756,12 +817,12 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
     });
 
     const brandColors = [
-      "hsl(var(--primary))",
-      "hsl(var(--chart-1))",
-      "hsl(var(--chart-2))",
-      "hsl(var(--chart-3))",
-      "hsl(var(--chart-4))",
-      "hsl(var(--chart-5))",
+      getCSSVariableColor("--primary"),
+      getCSSVariableColor("--chart-1"),
+      getCSSVariableColor("--chart-2"),
+      getCSSVariableColor("--chart-3"),
+      getCSSVariableColor("--chart-4"),
+      getCSSVariableColor("--chart-5"),
       "#4b39ef",
       "#39bdf8",
       "#f97316",
@@ -1351,7 +1412,6 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
             'separator',
             'export',
           ]}
-          enableCharts
           enableRangeSelection={true}
           suppressRowClickSelection={false}
           sideBar={{
@@ -1370,13 +1430,6 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
                 iconKey: 'filter',
                 toolPanel: 'agFiltersToolPanel',
               },
-              {
-                id: 'charts',
-                labelKey: 'charts',
-                labelDefault: 'Charts',
-                iconKey: 'menu',
-                toolPanel: 'agChartsToolPanel',
-              },
             ],
             defaultToolPanel: 'columns',
             hiddenByDefault: false,
@@ -1394,7 +1447,6 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
           pivotPanelShow="always"
           suppressAggFuncInHeader={false}
           groupDisplayType="multipleColumns"
-          chartThemes={['ag-default', 'ag-material', 'ag-sheets', 'ag-vivid']}
           cacheQuickFilter
           groupMaintainOrder
           popupParent={popupParent}
