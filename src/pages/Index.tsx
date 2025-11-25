@@ -128,12 +128,6 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted text-muted-foreground"
-                    >
-                      <Search className="h-4 w-4" />
-                    </button>
                     {inTransitOpen ? (
                       <ChevronUp className="w-5 h-5 text-muted-foreground" />
                     ) : (

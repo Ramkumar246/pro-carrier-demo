@@ -19,11 +19,12 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal } from "lucide-react";
+import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal, Search, Columns3 } from "lucide-react";
 import type { Shipment } from "@/types/shipment";
 import type { DelayStage } from "@/lib/delay-utils";
 import { getStageDelay } from "@/lib/delay-utils";
 import { getCSSVariableColor } from "@/lib/chart-colors";
+import { Input } from "@/components/ui/input";
 
 const DELAY_STAGES: DelayStage[] = ["pickup", "departure", "arrival", "delivery"];
 const STAGE_LABEL: Record<DelayStage, string> = {
@@ -697,7 +698,10 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
   const columnApiRef = useRef<any>(null);
   const popupParent = typeof document !== 'undefined' ? document.body : undefined;
   const navigate = useNavigate();
-  const [selectedCharts, setSelectedCharts] = useState<ChartSelection[]>(["delay", "containerMix"]);
+  const [selectedCharts, setSelectedCharts] = useState<ChartSelection[]>([]);
+  const [isSideBarVisible, setIsSideBarVisible] = useState(false);
+  const [isQuickFilterVisible, setIsQuickFilterVisible] = useState(false);
+  const [quickFilterText, setQuickFilterText] = useState("");
   const [delayChartData, setDelayChartData] = useState<DelayChartDatum[] | null>(null);
   const [containerMixData, setContainerMixData] = useState<ContainerMixDatum[] | null>(null);
   const [transportModeData, setTransportModeData] = useState<TransportModeDatum[] | null>(null);
@@ -711,6 +715,25 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
       }
       return prev.filter((item) => item !== value);
     });
+  }, []);
+
+  const toggleSideBarVisibility = useCallback(() => {
+    setIsSideBarVisible((prev) => !prev);
+  }, []);
+
+  const toggleQuickFilterVisibility = useCallback(() => {
+    setIsQuickFilterVisible((prev) => {
+      if (prev) {
+        setQuickFilterText("");
+        apiRef.current?.setQuickFilter("");
+      }
+      return !prev;
+    });
+  }, []);
+
+  const handleQuickFilterChange = useCallback((value: string) => {
+    setQuickFilterText(value);
+    apiRef.current?.setQuickFilter(value);
   }, []);
 
   const buildDelayChartData = useCallback((): DelayChartDatum[] => {
@@ -851,8 +874,6 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
     {
       headerName: 'OUR REFERENCE',
       field: 'id',
-      checkboxSelection: true,
-      headerCheckboxSelection: true,
       pinned: 'left',
       minWidth: 150,
       flex: 0,
@@ -1049,7 +1070,7 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
       headerName: 'PICKUP',
       children: [
         {
-          headerName: 'Actual Date',
+          headerName: 'Date',
           field: 'pickupActualDate',
           minWidth: 120,
           flex: 0,
@@ -1089,7 +1110,7 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
       headerName: 'DELIVERY',
       children: [
         {
-          headerName: 'Actual Date',
+          headerName: 'Date',
           field: 'deliveryActualDate',
           minWidth: 120,
           flex: 0,
@@ -1360,6 +1381,12 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
     renderCharts();
   }, [data, renderCharts]);
 
+  useEffect(() => {
+    if (apiRef.current) {
+      apiRef.current.setSideBarVisible(isSideBarVisible);
+    }
+  }, [isSideBarVisible]);
+
   return (
     <div className="w-full">
       {/* Toolbar */}
@@ -1405,6 +1432,33 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
           <RefreshCw className="h-4 w-4" />
           Reset View
         </Button>
+        <Button
+          onClick={toggleQuickFilterVisibility}
+          variant={isQuickFilterVisible ? "secondary" : "outline"}
+          size="sm"
+          className="gap-2"
+        >
+          <Search className="h-4 w-4" />
+          Search
+        </Button>
+        {isQuickFilterVisible && (
+          <Input
+            value={quickFilterText}
+            onChange={(event) => handleQuickFilterChange(event.target.value)}
+            placeholder="Search all columns..."
+            className="w-64"
+            autoFocus
+          />
+        )}
+        <Button
+          onClick={toggleSideBarVisibility}
+          variant={isSideBarVisible ? "secondary" : "outline"}
+          size="sm"
+          className="gap-2"
+        >
+          <Columns3 className="h-4 w-4" />
+          {isSideBarVisible ? "Hide Column Panel" : "Show Column Panel"}
+        </Button>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -1416,7 +1470,7 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem className="text-xs text-muted-foreground">
-                Select one or more charts to render
+                Select one or more charts to display
               </DropdownMenuItem>
               <div className="my-1 h-px bg-border" />
               {chartOptions.map((option) => (
@@ -1481,7 +1535,7 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
               },
             ],
             defaultToolPanel: 'columns',
-            hiddenByDefault: false,
+            hiddenByDefault: true,
           }}
           statusBar={{
             statusPanels: [
