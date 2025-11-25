@@ -139,7 +139,7 @@ const CarbonEmissionsChart = () => {
     };
 
     // Create 3 spline series - Sea, Road, Air
-    const seaSeries = createSeries("Sea Mode", "sea", seaColor);
+    const seaSeries = createSeries("Sea", "sea", seaColor);
     const roadSeries = createSeries("Road", "road", roadColor);
     const airSeries = createSeries("Air", "air", airColor);
 

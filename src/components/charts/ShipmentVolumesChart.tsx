@@ -197,7 +197,8 @@ const ShipmentVolumesChart = () => {
     const makeSeries = (
       name: string,
       field: keyof AggregatedMonth,
-      color: string
+      color: string,
+      isTopStack: boolean = false
     ) => {
       const series = chart.series.push(
         am5xy.ColumnSeries.new(root, {
@@ -210,23 +211,29 @@ const ShipmentVolumesChart = () => {
         })
       );
 
-      series.columns.template.setAll({
-        cornerRadiusTL: 4,
-        cornerRadiusTR: 4,
+      const columnTemplate = {
         strokeOpacity: 0,
         fill: am5.color(color),
         tooltipText: `${name} ({monthLabel}): {valueY.formatNumber('#,###')} TEU`,
         tooltipY: 0,
-      });
+      };
+
+      // Only apply corner radius to the top stack (Road series)
+      if (isTopStack) {
+        (columnTemplate as any).cornerRadiusTL = 4;
+        (columnTemplate as any).cornerRadiusTR = 4;
+      }
+
+      series.columns.template.setAll(columnTemplate);
 
       series.data.setAll(chartData);
       series.appear(1000, 100);
       return series;
     };
 
-    makeSeries("Sea", "sea", COLORS.sea);
-    makeSeries("Air", "air", COLORS.air);
-    makeSeries("Road", "road", COLORS.road);
+    makeSeries("Sea", "sea", COLORS.sea, false);
+    makeSeries("Air", "air", COLORS.air, false);
+    makeSeries("Road", "road", COLORS.road, true);
 
     chart.set(
       "cursor",
