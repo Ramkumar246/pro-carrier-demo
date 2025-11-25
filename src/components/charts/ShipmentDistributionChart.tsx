@@ -168,6 +168,7 @@ const ShipmentDistributionChart = () => {
       textType: "circular",
       centerX: 0,
       centerY: 0,
+      fontSize: 11,
     });
 
     // Ensure tooltip container is on top layer
