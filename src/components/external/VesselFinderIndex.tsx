@@ -63,6 +63,7 @@ const VesselFinderIndex: React.FC<VesselFinderIndexProps> = ({ activeShipment })
   };
 
   const isAirMode = activeShipment?.transportMode === 'Air';
+  const isRoadMode = activeShipment?.transportMode === 'Road';
 
   return (
     <div className="flex h-screen bg-background">
@@ -79,6 +80,7 @@ const VesselFinderIndex: React.FC<VesselFinderIndexProps> = ({ activeShipment })
           segmentData={segmentData}
           voyageSummary={voyageSummary}
           isAirMode={isAirMode}
+          isRoadMode={isRoadMode}
         />
       )}
       <div className="flex-1 relative">
