@@ -1,6 +1,6 @@
 import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { ModuleRegistry, AllCommunityModule ,themeQuartz} from 'ag-grid-community';
+import { ModuleRegistry, AllCommunityModule, themeQuartz } from 'ag-grid-community';
 import { AllEnterpriseModule, LicenseManager } from 'ag-grid-enterprise';
 import type { ColDef, GridReadyEvent, GridApi, RowClickedEvent } from 'ag-grid-community';
 import { useNavigate } from 'react-router-dom';
@@ -70,7 +70,7 @@ type TradePartyCostDatum = {
   x: number; // For bubble chart positioning
   y: number; // For bubble chart positioning
   z: number; // For bubble size
-  color: string; // Brand color for each trade party
+  color: string; // Brand color for each trade party 
 };
 
 type ChartSelection = "delay" | "containerMix" | "tradePartyCost";
@@ -78,7 +78,7 @@ type ChartSelection = "delay" | "containerMix" | "tradePartyCost";
 const chartOptions: { value: ChartSelection; label: string }[] = [
   { value: "delay", label: "Delay Overview" },
   { value: "containerMix", label: "Container Mix" },
-  { value: "tradePartyCost", label: "Trade Party Cost" },
+  // { value: "tradePartyCost", label: "Trade Party Cost" },
 ];
 
 // Brand colors for container modes
@@ -138,11 +138,11 @@ const DelayCellRenderer = (props: any) => {
   const data = props.data || {};
   const stage: DelayStage | undefined = props.stage || props?.colDef?.cellRendererParams?.stage;
   const delay = stage ? getStageDelay(stage, data) : null;
-  
+
   if (delay === null) {
     return <span className="text-muted-foreground">-</span>;
   }
-  
+
   if (delay === 0) {
     return (
       <div className="flex items-center gap-1 text-green-600">
@@ -151,7 +151,7 @@ const DelayCellRenderer = (props: any) => {
       </div>
     );
   }
-  
+
   return (
     <span className="text-red-600 font-semibold">{delay} days</span>
   );
@@ -796,15 +796,15 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     if (!api) return [];
 
     const transportData: Record<string, Record<string, number>> = {};
-    
+
     api.forEachNodeAfterFilterAndSort((node) => {
       const row = node.data;
       if (!row?.transportMode || !row?.containerMode) return;
-      
+
       if (!transportData[row.transportMode]) {
         transportData[row.transportMode] = {};
       }
-      transportData[row.transportMode][row.containerMode] = 
+      transportData[row.transportMode][row.containerMode] =
         (transportData[row.transportMode][row.containerMode] || 0) + 1;
     });
 
@@ -833,11 +833,11 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     if (!api) return [];
 
     const tradePartyData: Record<string, { totalCost: number; count: number }> = {};
-    
+
     api.forEachNodeAfterFilterAndSort((node) => {
       const row = node.data;
       if (!row?.tradeParty || row.costUsd == null) return;
-      
+
       const party = row.tradeParty;
       if (!tradePartyData[party]) {
         tradePartyData[party] = { totalCost: 0, count: 0 };
@@ -1174,6 +1174,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       resizable: true,
       enableValue: true,
       wrapText: true,
+      cellStyle: { justifyContent: 'flex-end' },
     },
     {
       headerName: 'VOLUME (TEU)',
@@ -1187,6 +1188,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       resizable: true,
       enableValue: true,
       wrapText: true,
+      cellStyle: { justifyContent: 'flex-end' },
     },
     {
       headerName: 'CONTAINERS',
@@ -1200,6 +1202,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       resizable: true,
       enableValue: true,
       wrapText: true,
+      cellStyle: { justifyContent: 'flex-end' },
     },
     {
       headerName: 'EST. COST (USD)',
@@ -1217,6 +1220,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       },
       enableValue: true,
       wrapText: true,
+      cellStyle: { justifyContent: 'flex-end' },
     },
     {
       headerName: 'TOTAL CO₂e (kg)',
@@ -1236,9 +1240,9 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       wrapText: true,
       cellStyle: (params) => {
         if (params.value == null || params.value === undefined) {
-          return { color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' };
+          return { color: 'hsl(var(--muted-foreground))', fontStyle: 'italic', justifyContent: 'flex-end' };
         }
-        return {};
+        return { justifyContent: 'flex-end' };
       },
     },
   ], []);
@@ -1257,7 +1261,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     enablePivot: true,
     wrapText: true,
     autoHeight: false,
-    cellStyle: { 
+    cellStyle: {
       display: 'flex',
       alignItems: 'center',
       whiteSpace: 'normal',
@@ -1277,7 +1281,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     if (!api) return;
 
     setDelayChartData(selectedCharts.includes("delay") ? buildDelayChartData() : null);
-    
+
     if (selectedCharts.includes("containerMix")) {
       if (activeFilter === "All") {
         setTransportModeData(buildTransportModeData());
@@ -1290,7 +1294,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       setContainerMixData(null);
       setTransportModeData(null);
     }
-    
+
     setTradePartyCostData(
       selectedCharts.includes("tradePartyCost") ? buildTradePartyCostData() : null,
     );
@@ -1389,8 +1393,8 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       <div className="flex gap-2 mb-3 flex-wrap items-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               className="gap-2"
             >
@@ -1410,18 +1414,18 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button 
-          onClick={onClearFilters} 
-          variant="outline" 
+        <Button
+          onClick={onClearFilters}
+          variant="outline"
           size="sm"
           className="gap-2"
         >
           <Filter className="h-4 w-4" />
           Clear Filters
         </Button>
-        <Button 
-          onClick={onResetColumns} 
-          variant="outline" 
+        <Button
+          onClick={onResetColumns}
+          variant="outline"
           size="sm"
           className="gap-2"
         >
@@ -1545,13 +1549,12 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       </div>
       {(delayChartData || containerMixData || transportModeData || tradePartyCostData) && selectedCharts.length > 0 && (
         <div
-          className={`mt-4 grid gap-4 ${
-            [delayChartData, containerMixData || transportModeData, tradePartyCostData].filter(Boolean).length === 1
-              ? ""
-              : [delayChartData, containerMixData || transportModeData, tradePartyCostData].filter(Boolean).length === 2
+          className={`mt-4 grid gap-4 ${[delayChartData, containerMixData || transportModeData, tradePartyCostData].filter(Boolean).length === 1
+            ? ""
+            : [delayChartData, containerMixData || transportModeData, tradePartyCostData].filter(Boolean).length === 2
               ? "lg:grid-cols-2"
               : "lg:grid-cols-3"
-          }`}
+            }`}
         >
           {selectedCharts.includes("delay") && delayChartData && (
             <DelaySummaryChart data={delayChartData} />

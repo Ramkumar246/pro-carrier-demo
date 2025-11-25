@@ -9,7 +9,7 @@ interface FilterButtonsProps {
 
 const FilterButtons = ({ activeFilter, onFilterChange }: FilterButtonsProps) => {
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3 custom-button-container">
       {transportFilterOptions.map(({ label, value }) => (
         <Button
           key={value}

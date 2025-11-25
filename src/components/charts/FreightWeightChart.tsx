@@ -190,7 +190,7 @@ const FreightWeightChart = ({ showFullRange = false }: FreightWeightChartProps) 
       stroke: am5.color("rgba(33,32,99,0.03)"),
       strokeOpacity: 0.03,
     });
-    
+
     const yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
         renderer: yAxisRenderer,
@@ -263,8 +263,8 @@ const FreightWeightChart = ({ showFullRange = false }: FreightWeightChartProps) 
 
     const legend = chart.children.push(
       am5.Legend.new(root, {
-        centerX: am5.p50,
-        x: am5.p50,
+        centerX: am5.p100,
+        x: am5.percent(95),
         marginTop: 10,
         marginBottom: 0,
         layout: root.horizontalLayout,
