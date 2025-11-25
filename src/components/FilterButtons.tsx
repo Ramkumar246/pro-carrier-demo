@@ -18,7 +18,7 @@ const FilterButtons = ({ activeFilter, onFilterChange }: FilterButtonsProps) => 
             "rounded-full px-6",
             activeFilter === value
               ? "bg-primary text-primary-foreground shadow-lg"
-              : "border-border hover:bg-muted",
+              : "border-border hover:bg-primary hover:text-primary-foreground",
           )}
           onClick={() => onFilterChange(value)}
         >

@@ -146,14 +146,14 @@ const DelayCellRenderer = (props: any) => {
   if (delay === 0) {
     return (
       <div className="flex items-center gap-1 text-green-600">
-        <CheckCircle2 className="h-4 w-4" />
+        {/* <CheckCircle2 className="h-4 w-4" /> */}
         <span>0</span>
       </div>
     );
   }
 
   return (
-    <span className="text-red-600 font-semibold">{delay} days</span>
+    <span className="text-red-600 font-semibold">{delay} </span>
   );
 };
 
