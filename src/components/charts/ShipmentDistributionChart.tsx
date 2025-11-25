@@ -95,7 +95,7 @@ const ShipmentDistributionChart = () => {
       })
     );
     chartRef.current = chart;
-    
+
     // Remove any borders from chart container
     chart.get("background")?.setAll({
       strokeWidth: 0,
@@ -116,7 +116,7 @@ const ShipmentDistributionChart = () => {
       pointerOrientation: "horizontal",
       animationDuration: 200,
     });
-    
+
     // Set tooltip background with high opacity and ensure it's visible
     const tooltipBg = tooltip.get("background");
     if (tooltipBg) {
@@ -127,14 +127,14 @@ const ShipmentDistributionChart = () => {
         strokeWidth: 1,
       });
     }
-    
+
     // Explicitly set tooltip label color to ensure visibility for all modes
     tooltip.label.setAll({
       fill: am5.color(foregroundColor),
       fillOpacity: 1,
       fontSize: 12,
     });
-    
+
     // Force tooltip to always show text
     tooltip.label.adapters.add("text", (text) => {
       return text || "";
@@ -169,7 +169,7 @@ const ShipmentDistributionChart = () => {
       centerX: 0,
       centerY: 0,
     });
-    
+
     // Ensure tooltip container is on top layer
     if (root.tooltipContainer) {
       root.tooltipContainer.toFront();
@@ -186,7 +186,7 @@ const ShipmentDistributionChart = () => {
     );
     legend.data.setAll(series.dataItems);
     legend.valueLabels.template.setAll({
-      text: "",
+      forceHidden: true,
     });
     legend.labels.template.setAll({
       fontSize: 12,
