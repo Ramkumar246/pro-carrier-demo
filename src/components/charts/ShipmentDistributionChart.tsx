@@ -12,6 +12,16 @@ const COLORS = {
   Road: "#FF2C7D", // Pink
 };
 
+const getShipmentVolume = (shipment: Shipment) => {
+  const rawValue =
+    (shipment as any).volume ??
+    shipment.volumeTeu ??
+    shipment.containers ??
+    0;
+  const numericValue = Number(rawValue);
+  return Number.isFinite(numericValue) ? numericValue : 0;
+};
+
 const useTransportModeData = () => {
   return useMemo(() => {
     const allShipments: Shipment[] = [
@@ -20,7 +30,7 @@ const useTransportModeData = () => {
       ...shipmentData.pending,
     ];
 
-    const counts = {
+    const volumes = {
       Sea: 0,
       Air: 0,
       Road: 0,
@@ -29,30 +39,30 @@ const useTransportModeData = () => {
     allShipments.forEach((shipment) => {
       const mode = shipment.transportMode;
       if (mode === "Sea" || mode === "Air" || mode === "Road") {
-        counts[mode]++;
+        volumes[mode] += getShipmentVolume(shipment);
       }
     });
 
-    const total = counts.Sea + counts.Air + counts.Road;
+    const total = volumes.Sea + volumes.Air + volumes.Road;
     if (total === 0) return [];
 
     return [
       {
         name: "Sea",
-        value: counts.Sea,
-        percentage: Math.round((counts.Sea / total) * 100),
+        value: Number(volumes.Sea.toFixed(2)),
+        percentage: Math.round((volumes.Sea / total) * 100),
         fill: am5.color(COLORS.Sea),
       },
       {
         name: "Air",
-        value: counts.Air,
-        percentage: Math.round((counts.Air / total) * 100),
+        value: Number(volumes.Air.toFixed(2)),
+        percentage: Math.round((volumes.Air / total) * 100),
         fill: am5.color(COLORS.Air),
       },
       {
         name: "Road",
-        value: counts.Road,
-        percentage: Math.round((counts.Road / total) * 100),
+        value: Number(volumes.Road.toFixed(2)),
+        percentage: Math.round((volumes.Road / total) * 100),
         fill: am5.color(COLORS.Road),
       },
     ];
@@ -149,7 +159,7 @@ const ShipmentDistributionChart = () => {
       strokeWidth: 0,
       strokeOpacity: 0,
       fillOpacity: 1,
-      tooltipText: "{category}: {value} shipments",
+      tooltipText: "{category}: {value} TEU",
     });
 
     series.data.setAll(chartData);

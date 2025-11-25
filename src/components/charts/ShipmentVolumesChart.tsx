@@ -154,7 +154,8 @@ const ShipmentVolumesChart = () => {
       minGridDistance: 20,
     });
     xAxisRenderer.grid.template.setAll({
-      stroke: am5.color("rgba(33,32,99,0.08)"),
+      stroke: am5.color("rgba(33,32,99,0.03)"),
+      strokeOpacity: 0.03,
     });
 
     const xAxis = chart.xAxes.push(
@@ -179,12 +180,17 @@ const ShipmentVolumesChart = () => {
       textAlign: "center",
     });
 
+    const yAxisRenderer = am5xy.AxisRendererY.new(root, {
+      minGridDistance: 30,
+    });
+    yAxisRenderer.grid.template.setAll({
+      stroke: am5.color("rgba(33,32,99,0.03)"),
+      strokeOpacity: 0.03,
+    });
+    
     const yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
-        renderer: am5xy.AxisRendererY.new(root, {
-          minGridDistance: 30,
-          strokeOpacity: 0.2,
-        }),
+        renderer: yAxisRenderer,
         min: 0,
       })
     );

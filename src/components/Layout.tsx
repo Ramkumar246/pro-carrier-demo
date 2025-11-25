@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, cloneElement, isValidElement } from "react";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 
@@ -9,6 +9,10 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const [isLayoutExpanded, setIsLayoutExpanded] = useState(false);
 
+  const enhancedChildren = isValidElement(children)
+    ? cloneElement(children, { isLayoutExpanded })
+    : children;
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
@@ -17,7 +21,7 @@ const Layout = ({ children }: LayoutProps) => {
         <TopBar isExpanded={isLayoutExpanded} onToggleLayout={() => setIsLayoutExpanded(!isLayoutExpanded)} />
         
         <main className="p-6">
-          {children}
+          {enhancedChildren}
         </main>
       </div>
     </div>

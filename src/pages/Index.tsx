@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Ship, ChevronDown, ChevronUp, MoreVertical, Search } from "lucide-react";
+import { Ship, ChevronDown, ChevronUp, Search } from "lucide-react";
 import DashboardCard from "@/components/DashboardCard";
 import CarbonEmissionsChart from "@/components/charts/CarbonEmissionsChart";
 import ShipmentVolumesChart from "@/components/charts/ShipmentVolumesChart";
@@ -12,11 +12,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Badge } from "@/components/ui/badge";
 import { filterShipmentsByMode, shipmentData, type TransportFilter } from "@/data/shipments";
 
-const Index = () => {
+interface IndexProps {
+  isLayoutExpanded?: boolean;
+}
+
+const Index = ({ isLayoutExpanded = false }: IndexProps) => {
   const [inTransitOpen, setInTransitOpen] = useState(true);
   const [pendingOpen, setPendingOpen] = useState(false);
   const [completedOpen, setCompletedOpen] = useState(false);
-  const [isLayoutExpanded, setIsLayoutExpanded] = useState(false);
   const [activeFilter, setActiveFilter] = useState<TransportFilter>("Sea");
 
   const inTransitShipments = useMemo(
@@ -40,9 +43,6 @@ const Index = () => {
               <Ship className="w-6 h-6 text-primary" />
               <h1 className="text-2xl font-bold text-foreground">Shipments</h1>
             </div>
-            <button className="p-2 hover:bg-muted rounded-lg transition-colors">
-              <MoreVertical className="w-5 h-5 text-foreground" />
-            </button>
           </div>
 
           {/* Charts Grid */}
@@ -62,7 +62,7 @@ const Index = () => {
                   <FreightWeightChart />
                 </DashboardCard>
 
-                <DashboardCard title="Shipment Mode, Spend & Volume">
+                <DashboardCard title="Shipment Mode by Volume">
                   <ShipmentDistributionChart />
                 </DashboardCard>
               </div>
@@ -89,7 +89,7 @@ const Index = () => {
                   <FreightWeightChart />
                 </DashboardCard>
 
-                <DashboardCard title="Shipment Mode, Spend & Volume">
+                <DashboardCard title="Shipment Mode by Volume">
                   <ShipmentDistributionChart />
                 </DashboardCard>
               </div>
@@ -133,12 +133,6 @@ const Index = () => {
                       className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted text-muted-foreground"
                     >
                       <Search className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted text-muted-foreground"
-                    >
-                      <MoreVertical className="h-4 w-4" />
                     </button>
                     {inTransitOpen ? (
                       <ChevronUp className="w-5 h-5 text-muted-foreground" />

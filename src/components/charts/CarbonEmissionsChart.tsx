@@ -101,11 +101,6 @@ const CarbonEmissionsChart = () => {
           categoryXField: "month",
           stroke: am5.color(color),
           fill: am5.color(color),
-          tooltip: am5.Tooltip.new(root, {
-            getFillFromSprite: false,
-            pointerOrientation: "horizontal",
-            labelText: `${name}: {valueY.formatNumber('#,###.##')} kg`,
-          }),
         })
       );
 
@@ -121,19 +116,29 @@ const CarbonEmissionsChart = () => {
           }),
         });
       });
-      const tooltip = series.get("tooltip");
-      if (tooltip) {
-        tooltip.get("background")?.setAll({
-          fill: am5.color(cardColor),
-          fillOpacity: 1,
-          stroke: am5.color(borderColor),
-          strokeWidth: 1,
-        });
-        tooltip.label.setAll({
-          fill: am5.color(foregroundColor),
-          fontSize: 12,
-        });
-      }
+      
+      // Create and configure tooltip with explicit text color
+      const tooltip = am5.Tooltip.new(root, {
+        getFillFromSprite: false,
+        autoTextColor: false,
+        pointerOrientation: "horizontal",
+        labelText: `${name}: {valueY.formatNumber('#,###.##')} kg`,
+      });
+      
+      tooltip.get("background")?.setAll({
+        fill: am5.color(cardColor),
+        fillOpacity: 1,
+        stroke: am5.color(borderColor),
+        strokeWidth: 1,
+      });
+      
+      tooltip.label.setAll({
+        fill: am5.color(foregroundColor),
+        fillOpacity: 1,
+        fontSize: 12,
+      });
+      
+      series.set("tooltip", tooltip);
 
       return series;
     };
