@@ -63,16 +63,7 @@ const Index = () => {
                 </DashboardCard>
 
                 <DashboardCard title="Shipment Mode, Spend & Volume">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Spend</p>
-                      <ShipmentDistributionChart type="spend" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Volume</p>
-                      <ShipmentDistributionChart type="volume" />
-                    </div>
-                  </div>
+                  <ShipmentDistributionChart />
                 </DashboardCard>
               </div>
               
@@ -99,16 +90,7 @@ const Index = () => {
                 </DashboardCard>
 
                 <DashboardCard title="Shipment Mode, Spend & Volume">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Spend</p>
-                      <ShipmentDistributionChart type="spend" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Volume</p>
-                      <ShipmentDistributionChart type="volume" />
-                    </div>
-                  </div>
+                  <ShipmentDistributionChart />
                 </DashboardCard>
               </div>
 

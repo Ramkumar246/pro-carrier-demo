@@ -1,50 +1,82 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { getCSSVariableColor } from "@/lib/chart-colors";
+import { shipmentData } from "@/data/shipments";
+import type { Shipment } from "@/types/shipment";
 
-// Sample data matching mockup exactly - two pie charts side by side
-// Left pie (Spend): Dark blue ~72%, Pink ~22%, Teal ~6%
-// Right pie (Volume): Dark blue ~62%, Pink ~18%, Teal ~20%
-const spendData = [
-  { name: "Sea", value: 72 }, // Dark blue - largest
-  { name: "Air", value: 22 }, // Pink - medium
-  { name: "Road", value: 6 }, // Teal - smallest
-];
+const COLORS = {
+  Sea: "#212063", // Dark blue
+  Air: "#4DD3C9", // Teal
+  Road: "#FF2C7D", // Pink
+};
 
-const volumeData = [
-  { name: "Sea", value: 62 }, // Dark blue - largest
-  { name: "Air", value: 18 }, // Pink - medium
-  { name: "Road", value: 20 }, // Teal - larger than spend
-];
+const useTransportModeData = () => {
+  return useMemo(() => {
+    const allShipments: Shipment[] = [
+      ...shipmentData.inTransit,
+      ...shipmentData.completed,
+      ...shipmentData.pending,
+    ];
 
-interface ShipmentDistributionChartProps {
-  type: "spend" | "volume";
-}
+    const counts = {
+      Sea: 0,
+      Air: 0,
+      Road: 0,
+    };
 
-const ShipmentDistributionChart = ({ type }: ShipmentDistributionChartProps) => {
+    allShipments.forEach((shipment) => {
+      const mode = shipment.transportMode;
+      if (mode === "Sea" || mode === "Air" || mode === "Road") {
+        counts[mode]++;
+      }
+    });
+
+    const total = counts.Sea + counts.Air + counts.Road;
+    if (total === 0) return [];
+
+    return [
+      {
+        name: "Sea",
+        value: counts.Sea,
+        percentage: Math.round((counts.Sea / total) * 100),
+        fill: am5.color(COLORS.Sea),
+      },
+      {
+        name: "Air",
+        value: counts.Air,
+        percentage: Math.round((counts.Air / total) * 100),
+        fill: am5.color(COLORS.Air),
+      },
+      {
+        name: "Road",
+        value: counts.Road,
+        percentage: Math.round((counts.Road / total) * 100),
+        fill: am5.color(COLORS.Road),
+      },
+    ];
+  }, []);
+};
+
+const ShipmentDistributionChart = () => {
   const chartRef = useRef<am5percent.PieChart | null>(null);
   const rootRef = useRef<am5.Root | null>(null);
-  const data = type === "spend" ? spendData : volumeData;
-  const chartId = `shipmentDistributionChart-${type}`;
+  const chartData = useTransportModeData();
+  const chartId = "shipmentDistributionChart";
 
   useEffect(() => {
+    if (!chartData.length) return;
+
     const root = am5.Root.new(chartId);
     root._logo?.dispose();
     rootRef.current = root;
 
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Get colors matching mockup
-    const color1 = "#2b2a7a"; // Dark blue
-    const color2 = "#f85a9d"; // Pink
-    const color3 = "#39c7c4"; // Teal
     const cardColor = getCSSVariableColor("--card");
     const borderColor = getCSSVariableColor("--border");
     const foregroundColor = getCSSVariableColor("--foreground");
-
-    const COLORS = [color1, color2, color3];
 
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
@@ -53,6 +85,12 @@ const ShipmentDistributionChart = ({ type }: ShipmentDistributionChartProps) => 
       })
     );
     chartRef.current = chart;
+    
+    // Remove any borders from chart container
+    chart.get("background")?.setAll({
+      strokeWidth: 0,
+      strokeOpacity: 0,
+    });
 
     const series = chart.series.push(
       am5percent.PieSeries.new(root, {
@@ -61,57 +99,103 @@ const ShipmentDistributionChart = ({ type }: ShipmentDistributionChartProps) => 
       })
     );
 
-    series.slices.template.setAll({
-      strokeWidth: 0,
-      tooltipText: "{category}: {value}%",
+    // Create and configure tooltip for all slices BEFORE setting data
+    const tooltip = am5.Tooltip.new(root, {
+      getFillFromSprite: false,
+      autoTextColor: false,
+      pointerOrientation: "horizontal",
+      animationDuration: 200,
+    });
+    
+    // Set tooltip background with high opacity and ensure it's visible
+    const tooltipBg = tooltip.get("background");
+    if (tooltipBg) {
+      tooltipBg.setAll({
+        fill: am5.color(cardColor),
+        fillOpacity: 1,
+        stroke: am5.color(borderColor),
+        strokeWidth: 1,
+      });
+    }
+    
+    // Explicitly set tooltip label color to ensure visibility for all modes
+    tooltip.label.setAll({
+      fill: am5.color(foregroundColor),
       fillOpacity: 1,
+      fontSize: 12,
+    });
+    
+    // Force tooltip to always show text
+    tooltip.label.adapters.add("text", (text) => {
+      return text || "";
     });
 
-    series.data.setAll(
-      data.map((item, index) => ({
-        name: item.name,
-        value: item.value,
-        fill: am5.color(COLORS[index % COLORS.length]),
-      }))
-    );
+    // Apply tooltip to series template BEFORE setting other properties
+    series.slices.template.set("tooltip", tooltip);
+
+    // Set colors for each slice based on category
+    series.slices.template.adapters.add("fill", (fill, target) => {
+      const dataItem = target.dataItem;
+      if (!dataItem) return fill;
+      const dataContext = dataItem.dataContext as { name: string };
+      const category = dataContext?.name;
+      if (category && COLORS[category as keyof typeof COLORS]) {
+        return am5.color(COLORS[category as keyof typeof COLORS]);
+      }
+      return fill;
+    });
+
+    series.slices.template.setAll({
+      strokeWidth: 0,
+      strokeOpacity: 0,
+      fillOpacity: 1,
+      tooltipText: "{category}: {value} shipments",
+    });
+
+    series.data.setAll(chartData);
 
     series.labels.template.setAll({
       textType: "circular",
       centerX: 0,
       centerY: 0,
     });
-
-    const tooltip = am5.Tooltip.new(root, {
-      getFillFromSprite: false,
-    });
-    tooltip.get("background")?.setAll({
-      fill: am5.color(cardColor),
-      fillOpacity: 1,
-      stroke: am5.color(borderColor),
-      strokeWidth: 1,
-    });
-    tooltip.label.setAll({
-      fill: am5.color(foregroundColor),
-    });
-    series.set("tooltip", tooltip);
+    
+    // Ensure tooltip container is on top layer
+    if (root.tooltipContainer) {
+      root.tooltipContainer.toFront();
+    }
 
     const legend = chart.children.push(
       am5.Legend.new(root, {
         centerX: am5.p50,
         x: am5.p50,
-        marginTop: 15,
-        marginBottom: 15,
+        marginTop: 10,
+        marginBottom: 0,
+        layout: root.horizontalLayout,
       })
     );
     legend.data.setAll(series.dataItems);
+    legend.labels.template.setAll({
+      fontSize: 12,
+      fill: am5.color(foregroundColor),
+    });
 
+    // Enhanced animations
     series.appear(1000, 100);
     chart.appear(1000, 100);
 
     return () => {
       root.dispose();
     };
-  }, [type, chartId]);
+  }, [chartData, chartId]);
+
+  if (!chartData.length) {
+    return (
+      <div className="flex h-48 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+        No transport mode data available.
+      </div>
+    );
+  }
 
   return <div id={chartId} style={{ width: "100%", height: "200px" }} />;
 };
