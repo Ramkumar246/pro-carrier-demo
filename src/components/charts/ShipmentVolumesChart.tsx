@@ -209,6 +209,18 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
       fontSize: 12,
     });
 
+    yAxis.children.unshift(
+      am5.Label.new(root, {
+        rotation: -90,
+        text: "TEU",
+        y: am5.p50,
+        centerX: am5.p50,
+        fontWeight: "500",
+        fontSize: 12,
+        fill: am5.color(mutedColor),
+      })
+    );
+
     const makeSeries = (
       name: string,
       field: keyof AggregatedMonth,
