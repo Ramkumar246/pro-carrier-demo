@@ -2749,6 +2749,24 @@ const VesselMap: React.FC<VesselMapProps> = ({
 
         // eslint-disable-next-line no-console
         console.log('[ROAD] camera adjusted to road corridor and 3D view applied');
+
+        // Compute and send high-level road corridor metrics to the sidebar
+        try {
+          const roadDistance = turf.length(routeFeature as any, { units: 'kilometers' });
+          const roadEmissions = roadDistance * 0.262;
+          const roadCost = roadDistance * 5.5;
+          const roadTravelTime = Math.round((roadDistance / 70) * 60); // ~70 km/h average driving speed
+
+          onSegmentDataChange?.({
+            distance: roadDistance.toFixed(1),
+            emissions: roadEmissions.toFixed(1),
+            cost: Math.round(roadCost),
+            travelTime: roadTravelTime,
+          });
+        } catch (metricsError) {
+          // eslint-disable-next-line no-console
+          console.error('[ROAD] failed to compute road segment metrics', metricsError);
+        }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Failed to render road route', error);
@@ -2766,6 +2784,7 @@ const VesselMap: React.FC<VesselMapProps> = ({
     isMapReady,
     fetchDirections,
     add3DBuildingsLayer,
+    onSegmentDataChange,
   ]);
 
   const calculateVesselPosition = (vessel: VesselData, customProgress?: number): [number, number] => {

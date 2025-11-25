@@ -80,6 +80,7 @@ interface ShipmentSidebarProps {
     transitDaysRemaining: number;
   } | null;
   isAirMode?: boolean;
+  isRoadMode?: boolean;
 }
 
 interface ParsedAddress {
@@ -192,8 +193,9 @@ const statusStyles: Record<
   },
 };
 
-const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onModeChange, segmentData, voyageSummary, isAirMode }) => {
+const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onModeChange, segmentData, voyageSummary, isAirMode, isRoadMode }) => {
   const isAirView = isAirMode === true;
+  const isRoadView = isRoadMode === true;
   const isSupplierView = !isAirView && mode === 'supplier';
   const isBuyerView = !isAirView && mode === 'buyer';
   const showCloseAction = !isAirView && (isSupplierView || isBuyerView);
@@ -403,6 +405,33 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
     weight: '26,500 kg',
     volume: '68.4 CBM',
   };
+
+  const roadMilestones: ProgressMilestone[] = [
+    {
+      id: 'road-pickup',
+      label: 'Pickup from origin hub',
+      location: 'Germany',
+      statusLabel: 'Completed',
+      status: 'completed',
+      date: '-',
+    },
+    {
+      id: 'road-transit',
+      label: 'In transit on road corridor',
+      location: 'Germany 	 France',
+      statusLabel: 'In Transit',
+      status: 'scheduled',
+      date: '-',
+    },
+    {
+      id: 'road-delivery',
+      label: 'Arrival at delivery hub',
+      location: 'France',
+      statusLabel: 'Pending',
+      status: 'pending',
+      date: '-',
+    },
+  ];
 
   const oceanLegMilestones: ProgressMilestone[] = summary.voyageMilestones.map((m) => ({
     id: m.id,
@@ -660,6 +689,22 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
     },
   ];
 
+  const roadSections: Section[] = isRoadView
+    ? [
+        {
+          id: 'road-leg',
+          type: 'progress',
+          title: 'Road Leg',
+          subtitle: 'Germany → France',
+          progress: 60,
+          milestones: roadMilestones,
+          icon: MapPin,
+          iconBackground: 'bg-[#E0F2FE]',
+          iconColor: 'text-[#0369A1]',
+        },
+      ]
+    : [];
+
   const airSections: Section[] = isAirView
     ? [
         {
@@ -685,7 +730,9 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
       ? supplierSections
       : isBuyerView
         ? buyerSections
-        : defaultSections;
+        : isRoadView
+          ? roadSections
+          : defaultSections;
 
   return (
     <div className="w-[32rem] h-screen overflow-y-auto border-r border-border bg-white">
@@ -769,52 +816,78 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
             </div>
           ) : (
             <div className="flex flex-col gap-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs uppercase tracking-wider text-white/70">{summary.status}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${timelinessBadgeClass}`}>
-                      {summary.timelinessLabel}
-                    </span>
+              {isRoadView ? (
+                <div className="grid gap-2 text-sm text-white/80">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs uppercase tracking-wider text-white/70">Road shipment in transit</p>
+                      </div>
+                      <h2 className="mt-1 text-3xl font-semibold leading-tight">Germany → France road corridor</h2>
+                    </div>
                   </div>
-                  <h2 className="mt-1 text-3xl font-semibold leading-tight">{summary.location}</h2>
+                  {segmentData && (
+                    <p>
+                      {segmentData.distance} km · ~{Math.floor(segmentData.travelTime / 60)}h {segmentData.travelTime % 60}m
+                    </p>
+                  )}
                 </div>
-              </div>
-              <div className="grid gap-2 text-sm text-white/80">
-                <p>{summary.lastPort}</p>
-                <p>{summary.nextPort}</p>
-                {summary.transitDays > 0 && (
-                  <div className="mt-1 space-y-1">
-                    <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
-                      <span>Transit time</span>
-                      <span>
-                        {transitCompletedDays}d / {summary.transitDays}d
-                      </span>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs uppercase tracking-wider text-white/70">{summary.status}</p>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${timelinessBadgeClass}`}>
+                          {summary.timelinessLabel}
+                        </span>
+                      </div>
+                      <h2 className="mt-1 text-3xl font-semibold leading-tight">{summary.location}</h2>
                     </div>
-                    <div className="h-1.5 w-full overflow-hidden bg-white/10 rounded-full">
-                      <div
-                        className="h-full rounded-full bg-emerald-400 transition-all duration-700"
-                        style={{ width: `${transitProgressPct}%` }}
-                      />
-                    </div>
-                    {summary.transitDaysRemaining > 0 && (
-                      <p className="text-[11px] text-white/75">
-                        {summary.transitDaysRemaining} days remaining
-                      </p>
+                  </div>
+                  <div className="grid gap-2 text-sm text-white/80">
+                    <p>{summary.lastPort}</p>
+                    <p>{summary.nextPort}</p>
+                    {summary.transitDays > 0 && (
+                      <div className="mt-1 space-y-1">
+                        <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
+                          <span>Transit time</span>
+                          <span>
+                            {transitCompletedDays}d / {summary.transitDays}d
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden bg-white/10 rounded-full">
+                          <div
+                            className="h-full rounded-full bg-emerald-400 transition-all duration-700"
+                            style={{ width: `${transitProgressPct}%` }}
+                          />
+                        </div>
+                        {summary.transitDaysRemaining > 0 && (
+                          <p className="text-[11px] text-white/75">
+                            {summary.transitDaysRemaining} days remaining
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
+                </>
+              )}
             </div>
           )}
         </div>
 
         {/* Segment Analysis Section */}
-        {(isSupplierView || isBuyerView) && segmentData && (
+        {segmentData && (isSupplierView || isBuyerView || isRoadView) && (
           <div className="rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-5">
             <h3 className="text-sm font-semibold text-emerald-900 mb-4 flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              {isSupplierView ? 'Pickup → Origin Port' : 'Destination Port → Delivery'}
+              {isSupplierView
+                ? 'Pickup → Origin Port'
+                : isBuyerView
+                  ? 'Destination Port → Delivery'
+                  : isRoadView
+                    ? 'Road Segment'
+                    : 'Segment Analysis'}
             </h3>
             
             {/* Metrics Grid (drayage cost and carbon offset removed for both buyer and supplier views) */}
