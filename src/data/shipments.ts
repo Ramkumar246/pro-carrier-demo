@@ -15,7 +15,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084406",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "15/06/2024",
@@ -37,7 +37,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084407",
       status: "Booked for Delivery",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "16/09/2024",
@@ -59,7 +59,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084408",
       status: "Awaiting Arrival",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "18/09/2024",
@@ -81,7 +81,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084409",
       status: "Awaiting Arrival",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "18/09/2024",
@@ -103,7 +103,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084410",
       status: "Booked for Delivery",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "20/09/2024",
@@ -125,7 +125,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084411",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "22/09/2024",
@@ -147,7 +147,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084412",
       status: "Awaiting Arrival",
-      origin: "N/A",
+      origin: "Doha",
       route: "Doha → Frankfurt",
       transportMode: "Air" as TransportMode,
       departure: "24/09/2024",
@@ -169,7 +169,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084413",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Warsaw",
       route: "Warsaw → Munich",
       transportMode: "Road" as TransportMode,
       departure: "23/09/2024",
@@ -191,7 +191,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084414",
       status: "Delayed at Pickup",
-      origin: "N/A",
+      origin: "Los Angeles",
       route: "Los Angeles → Sydney",
       transportMode: "Sea" as TransportMode,
       departure: "05/10/2024",
@@ -213,7 +213,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084415",
       status: "Delayed at Port",
-      origin: "N/A",
+      origin: "Qingdao",
       route: "Qingdao → Long Beach",
       transportMode: "Sea" as TransportMode,
       departure: "12/10/2024",
@@ -235,7 +235,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084416",
       status: "In Customs",
-      origin: "N/A",
+      origin: "Chicago",
       route: "Chicago → São Paulo",
       transportMode: "Air" as TransportMode,
       departure: "02/10/2024",
@@ -257,7 +257,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084417",
       status: "Awaiting Delivery",
-      origin: "N/A",
+      origin: "Hamburg",
       route: "Hamburg → Milan",
       transportMode: "Road" as TransportMode,
       departure: "06/10/2024",
@@ -279,7 +279,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084418",
       status: "Port Congestion",
-      origin: "N/A",
+      origin: "Busan",
       route: "Busan → Vancouver",
       transportMode: "Sea" as TransportMode,
       departure: "09/10/2024",
@@ -301,7 +301,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084419",
       status: "Transshipment Delay",
-      origin: "N/A",
+      origin: "Mumbai",
       route: "Mumbai → Durban",
       transportMode: "Sea" as TransportMode,
       departure: "14/10/2024",
@@ -323,7 +323,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084420",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Dubai",
       route: "Dubai → Nairobi",
       transportMode: "Air" as TransportMode,
       departure: "11/10/2024",
@@ -345,7 +345,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084421",
       status: "Awaiting Truck",
-      origin: "N/A",
+      origin: "Houston",
       route: "Houston → Rotterdam",
       transportMode: "Sea" as TransportMode,
       departure: "07/10/2024",
@@ -367,7 +367,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084422",
       status: "Held for Inspection",
-      origin: "N/A",
+      origin: "Toronto",
       route: "Toronto → Chicago",
       transportMode: "Road" as TransportMode,
       departure: "03/10/2024",
@@ -389,7 +389,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-084423",
       status: "Delayed at Destination",
-      origin: "N/A",
+      origin: "Melbourne",
       route: "Melbourne → Singapore",
       transportMode: "Sea" as TransportMode,
       departure: "18/10/2024",
@@ -413,7 +413,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-010001",
       status: "Pending Confirmation",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "04/10/2024",
@@ -434,7 +434,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-010002",
       status: "Pending Documents",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "06/10/2024",
@@ -455,7 +455,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-010003",
       status: "Pending Inspection",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "10/10/2024",
@@ -476,7 +476,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-010004",
       status: "Pending Capacity",
-      origin: "N/A",
+      origin: "Singapore",
       route: "Singapore → Los Angeles",
       transportMode: "Air" as TransportMode,
       departure: "08/10/2024",
@@ -497,7 +497,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-010005",
       status: "Pending Customs",
-      origin: "N/A",
+      origin: "Madrid",
       route: "Madrid → Lyon",
       transportMode: "Road" as TransportMode,
       departure: "09/10/2024",
@@ -520,7 +520,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000901",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "01/06/2024",
@@ -542,7 +542,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000902",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "05/08/2024",
@@ -564,7 +564,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000903",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "08/08/2024",
@@ -586,7 +586,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000904",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "12/08/2024",
@@ -608,7 +608,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000905",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "15/08/2024",
@@ -630,7 +630,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000906",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "18/08/2024",
@@ -652,7 +652,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000907",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "21/08/2024",
@@ -674,7 +674,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000908",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "24/08/2024",
@@ -696,7 +696,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000909",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "27/08/2024",
@@ -718,7 +718,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000910",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "30/08/2024",
@@ -740,7 +740,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000911",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea" as TransportMode,
       departure: "02/09/2024",
@@ -762,7 +762,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000912",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea" as TransportMode,
       departure: "05/09/2024",
@@ -784,7 +784,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000913",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Incheon",
       route: "Incheon → Seattle",
       transportMode: "Air" as TransportMode,
       departure: "15/08/2024",
@@ -806,7 +806,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000914",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Prague",
       route: "Prague → Amsterdam",
       transportMode: "Road" as TransportMode,
       departure: "09/09/2024",
@@ -828,7 +828,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000915",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Rotterdam",
       transportMode: "Sea" as TransportMode,
       departure: "15/01/2024",
@@ -850,7 +850,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000916",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Rotterdam",
       route: "Rotterdam → New York",
       transportMode: "Air" as TransportMode,
       departure: "04/02/2024",
@@ -872,7 +872,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000917",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Warsaw",
       route: "Warsaw → Paris",
       transportMode: "Road" as TransportMode,
       departure: "12/03/2024",
@@ -894,7 +894,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000918",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Busan",
       route: "Busan → Los Angeles",
       transportMode: "Sea" as TransportMode,
       departure: "08/04/2024",
@@ -916,7 +916,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000919",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Chicago",
       route: "Chicago → Toronto",
       transportMode: "Road" as TransportMode,
       departure: "05/05/2024",
@@ -938,7 +938,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000920",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Delhi",
       route: "Delhi → Frankfurt",
       transportMode: "Air" as TransportMode,
       departure: "28/05/2024",
@@ -960,7 +960,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000301",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Felixstowe",
       route: "Felixstowe → Auckland",
       transportMode: "Sea",
       departure: "01/01/2024",
@@ -982,7 +982,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000302",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Hamburg",
       route: "Hamburg → Milan",
       transportMode: "Road",
       departure: "18/01/2024",
@@ -1004,7 +1004,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-000201",
       status: "Pending Confirmation",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea",
       departure: "20/02/2024",
@@ -1025,7 +1025,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-000202",
       status: "Pending Inspection",
-      origin: "N/A",
+      origin: "Singapore",
       route: "Singapore → Los Angeles",
       transportMode: "Air",
       departure: "22/02/2024",
@@ -1046,7 +1046,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-000101",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Shanghai",
       route: "Shanghai → Felixstowe",
       transportMode: "Sea",
       departure: "15/01/2024",
@@ -1068,7 +1068,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-000102",
       status: "Awaiting Arrival",
-      origin: "N/A",
+      origin: "Doha",
       route: "Doha → Frankfurt",
       transportMode: "Air",
       departure: "05/02/2024",
@@ -1090,7 +1090,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-000103",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Warsaw",
       route: "Warsaw → Munich",
       transportMode: "Road",
       departure: "10/02/2024",
@@ -1112,7 +1112,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-000104",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Paris",
       route: "Paris → Barcelona",
       transportMode: "Road",
       departure: "05/03/2024",
@@ -1134,7 +1134,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-000105",
       status: "Awaiting Arrival",
-      origin: "N/A",
+      origin: "Dubai",
       route: "Dubai → Chennai",
       transportMode: "Air",
       departure: "12/03/2024",
@@ -1156,7 +1156,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-000106",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Chicago",
       route: "Chicago → Toronto",
       transportMode: "Road",
       departure: "18/11/2024",
@@ -1178,7 +1178,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-000107",
       status: "Awaiting Arrival",
-      origin: "N/A",
+      origin: "Hong Kong",
       route: "Hong Kong → Sydney",
       transportMode: "Air",
       departure: "25/11/2024",
@@ -1200,7 +1200,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-000203",
       status: "Pending Approval",
-      origin: "N/A",
+      origin: "Rome",
       route: "Rome → Vienna",
       transportMode: "Road",
       departure: "14/03/2024",
@@ -1221,7 +1221,7 @@ const rawShipmentData = {
     {
       id: "PN#2025-000204",
       status: "Pending Confirmation",
-      origin: "N/A",
+      origin: "Seoul",
       route: "Seoul → Tokyo",
       transportMode: "Air",
       departure: "19/11/2024",
@@ -1242,7 +1242,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000303",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Madrid",
       route: "Madrid → Lisbon",
       transportMode: "Road",
       departure: "03/03/2024",
@@ -1264,7 +1264,7 @@ const rawShipmentData = {
     {
       id: "CP#2025-000304",
       status: "Delivered",
-      origin: "N/A",
+      origin: "Bangkok",
       route: "Bangkok → Kuala Lumpur",
       transportMode: "Air",
       departure: "10/11/2024",
@@ -1286,7 +1286,7 @@ const rawShipmentData = {
     {
       id: "PC#2025-000108",
       status: "Awaiting Arrival",
-      origin: "N/A",
+      origin: "Busan",
       route: "Busan → Long Beach",
       transportMode: "Sea",
       departure: "08/03/2024",
@@ -1307,7 +1307,7 @@ const rawShipmentData = {
     },{
       id: "PC#2025-000109",
       status: "Out for Delivery",
-      origin: "N/A",
+      origin: "Jakarta",
       route: "Jakarta → Dubai",
       transportMode: "Sea",
       departure: "11/11/2024",
@@ -1329,7 +1329,7 @@ const rawShipmentData = {
 ,{
   id: "PN#2025-000205",
   status: "Pending Confirmation",
-  origin: "N/A",
+  origin: "Nhava Sheva",
   route: "Nhava Sheva → Rotterdam",
   transportMode: "Sea",
   departure: "25/03/2024",
@@ -1350,7 +1350,7 @@ const rawShipmentData = {
 ,{
   id: "PN#2025-000206",
   status: "Pending Inspection",
-  origin: "N/A",
+  origin: "Ho Chi Minh",
   route: "Ho Chi Minh → Sydney",
   transportMode: "Sea",
   departure: "28/11/2024",
@@ -1371,7 +1371,7 @@ const rawShipmentData = {
 ,{
   id: "CP#2025-000305",
   status: "Delivered",
-  origin: "N/A",
+  origin: "Jebel Ali",
   route: "Jebel Ali → Mombasa",
   transportMode: "Sea",
   departure: "02/03/2024",
@@ -1393,7 +1393,7 @@ const rawShipmentData = {
 ,{
   id: "CP#2025-000306",
   status: "Delivered",
-  origin: "N/A",
+  origin: "Tokyo",
   route: "Tokyo → Vancouver",
   transportMode: "Sea",
   departure: "03/11/2024",
