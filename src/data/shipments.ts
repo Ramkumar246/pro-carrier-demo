@@ -557,7 +557,7 @@ const rawShipmentData = {
       grossWeight: 13400,
       volumeTeu: 1,
       containers: 3,
-      costUsd: 87000,
+      costUsd: 17000,
       containerMode: "LCL",
       emissionCo2eKg: 1002.238, // SEA + LCL
     },
@@ -579,7 +579,7 @@ const rawShipmentData = {
       grossWeight: 9900,
       volumeTeu: 2,
       containers: 2,
-      costUsd: 65000,
+      costUsd: 15000,
       containerMode: "LCL",
       emissionCo2eKg: 0.91, // SEA + LCL
     },
@@ -601,7 +601,7 @@ const rawShipmentData = {
       grossWeight: 14350,
       volumeTeu: 2,
       containers: 4,
-      costUsd: 99000,
+      costUsd: 29000,
       containerMode: "LCL",
       emissionCo2eKg: 1000.136, // SEA + LCL
     },
@@ -623,7 +623,7 @@ const rawShipmentData = {
       grossWeight: 11800,
       volumeTeu: 2,
       containers: 3,
-      costUsd: 82000,
+      costUsd: 12000,
       containerMode: "LCL",
       emissionCo2eKg: 1001.69, // SEA + LCL
     },
@@ -645,7 +645,7 @@ const rawShipmentData = {
       grossWeight: 12600,
       volumeTeu: 2,
       containers: 3,
-      costUsd: 87000,
+      costUsd: 17000,
       containerMode: "LCL",
       emissionCo2eKg: 100.291, // SEA + LCL
     },
@@ -667,7 +667,7 @@ const rawShipmentData = {
       grossWeight: 10100,
       volumeTeu: 2,
       containers: 2,
-      costUsd: 64000,
+      costUsd: 14000,
       containerMode: "LCL",
       emissionCo2eKg: 0.699, // SEA + LCL
     },
@@ -689,7 +689,7 @@ const rawShipmentData = {
       grossWeight: 13900,
       volumeTeu: 2,
       containers: 4,
-      costUsd: 101000,
+      costUsd: 11000,
       containerMode: "LCL",
       emissionCo2eKg: 1002.238, // SEA + LCL
     },
@@ -733,7 +733,7 @@ const rawShipmentData = {
       grossWeight: 13200,
       volumeTeu: 2,
       containers: 3,
-      costUsd: 88000,
+      costUsd: 8000,
       containerMode: "FCL",
       emissionCo2eKg: 100.291, // SEA + FCL
     },
