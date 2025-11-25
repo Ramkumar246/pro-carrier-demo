@@ -1236,6 +1236,7 @@ const VesselMap: React.FC<VesselMapProps> = ({
 
   const switchToStreetView = useCallback((route: Feature<LineString>, routeType?: string) => {
     if (!map.current) return;
+    return;
     
     console.log(`🚀 Focusing on ${routeType || 'navigation'} route segment only`);
     console.log('📏 Route has', route.geometry.coordinates.length, 'coordinates');

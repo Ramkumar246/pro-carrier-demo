@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import addressRaw from '@/data/vessel-finder/address.txt?raw';
 import airRaw from '@/data/vessel-finder/air.txt?raw';
 import type { LucideIcon } from 'lucide-react';
@@ -199,6 +199,28 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
   const isSupplierView = !isAirView && mode === 'supplier';
   const isBuyerView = !isAirView && mode === 'buyer';
   const showCloseAction = !isAirView && (isSupplierView || isBuyerView);
+
+  const [expandedSectionId, setExpandedSectionId] = useState<string | null>(
+    isAirView
+      ? 'air-leg'
+      : isRoadView
+        ? 'road-leg'
+        : !isAirView && !isRoadView && mode === 'default'
+          ? 'ocean-leg'
+          : null,
+  );
+
+  useEffect(() => {
+    if (isAirView) {
+      setExpandedSectionId('air-leg');
+    } else if (isRoadView) {
+      setExpandedSectionId('road-leg');
+    } else if (!isAirView && !isRoadView && mode === 'default') {
+      setExpandedSectionId('ocean-leg');
+    } else if (isSupplierView || isBuyerView) {
+      setExpandedSectionId(null);
+    }
+  }, [isAirView, isRoadView, mode, isSupplierView, isBuyerView]);
 
   const airDeparture = activeFlight?.departure;
   const airArrival = activeFlight?.arrival;
@@ -581,19 +603,6 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
       iconColor: 'text-[#1E3A8A]',
     },
     {
-      id: 'transshipment',
-      type: 'info',
-      title: 'Transshipment',
-      subtitle: 'Singapore → London Gateway',
-      details: [
-        'Window confirmed for 02/09/2025',
-        'Liner schedule updated with no delays',
-      ],
-      icon: Anchor,
-      iconBackground: 'bg-[#F4E8FF]',
-      iconColor: 'text-[#7C3AED]',
-    },
-    {
       id: 'planned-delivery',
       type: 'info',
       title: 'Planned Delivery',
@@ -918,69 +927,78 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
             const IconComponent = section.icon;
 
             if (section.type === 'progress') {
+              const isExpanded = expandedSectionId === section.id;
               return (
                 <div
                   key={section.id}
-                  className="rounded-3xl border border-slate-200/70 bg-white p-5"
+                  className="rounded-3xl border border-slate-200/70 bg-white p-4"
                 >
                   <div className="flex items-start gap-3">
                     <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${section.iconBackground}`}>
                       <IconComponent className={`h-5 w-5 ${section.iconColor}`} />
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between gap-2 text-left"
+                        onClick={() => setExpandedSectionId(isExpanded ? null : section.id)}
+                      >
                         <div>
                           <p className="text-sm font-semibold text-foreground">{section.title}</p>
                           <p className="text-sm text-muted-foreground">{section.subtitle}</p>
                         </div>
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      </div>
+                        <ChevronDown
+                          className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                        />
+                      </button>
 
-                      <div className="mt-4 space-y-4">
-                        <div>
-                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                            <span>Progress to Market</span>
-                            <span className="font-semibold text-foreground">{section.progress}%</span>
-                          </div>
-                          <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-r from-[#6AD35F] to-[#3EBB4C]"
-                              style={{ width: `${section.progress}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          {section.milestones.map((milestone) => {
-                            const styles = statusStyles[milestone.status];
-                            return (
+                      {isExpanded && (
+                        <div className="mt-3 space-y-3">
+                          <div>
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                              <span>Progress to Market</span>
+                              <span className="font-semibold text-foreground">{section.progress}%</span>
+                            </div>
+                            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
                               <div
-                                key={milestone.id}
-                                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-2.5"
-                              >
-                                <div className="flex flex-1 items-center gap-3">
-                                  <span
-                                    className={`h-2.5 w-2.5 rounded-full ${styles.dot} ring-4 ${styles.ring} ring-offset-2 ring-offset-white`}
-                                  />
-                                  <div>
-                                    <p className="text-[13px] font-semibold text-foreground">{milestone.label}</p>
-                                    <p className="text-[11px] text-muted-foreground">{milestone.location}</p>
+                                className="h-full rounded-full bg-gradient-to-r from-[#6AD35F] to-[#3EBB4C]"
+                                style={{ width: `${section.progress}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            {section.milestones.map((milestone) => {
+                              const styles = statusStyles[milestone.status];
+                              return (
+                                <div
+                                  key={milestone.id}
+                                  className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-white/80 px-3 py-2"
+                                >
+                                  <div className="flex flex-1 items-center gap-3">
+                                    <span
+                                      className={`h-2.5 w-2.5 rounded-full ${styles.dot} ring-4 ${styles.ring} ring-offset-2 ring-offset-white`}
+                                    />
+                                    <div>
+                                      <p className="text-[13px] font-semibold text-foreground">{milestone.label}</p>
+                                      <p className="text-[11px] text-muted-foreground">{milestone.location}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-1 text-right text-[11px]">
+                                    <span className={`rounded-full px-2 py-0.5 font-medium leading-none ${styles.badge}`}>
+                                      {milestone.statusLabel}
+                                    </span>
+                                    <div className="flex items-center gap-1 text-muted-foreground">
+                                      <CalendarDays className="h-3 w-3" />
+                                      <span>{milestone.date}</span>
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-1 text-right text-[11px]">
-                                  <span className={`rounded-full px-2 py-0.5 font-medium leading-none ${styles.badge}`}>
-                                    {milestone.statusLabel}
-                                  </span>
-                                  <div className="flex items-center gap-1 text-muted-foreground">
-                                    <CalendarDays className="h-3 w-3" />
-                                    <span>{milestone.date}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -988,32 +1006,43 @@ const ShipmentSidebar: React.FC<ShipmentSidebarProps> = ({ mode = 'default', onM
             }
 
             return (
-              <div key={section.id} className="rounded-3xl border border-slate-200/70 bg-white p-5">
-                <div className="flex items-start gap-3">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${section.iconBackground}`}>
-                    <IconComponent className={`h-5 w-5 ${section.iconColor}`} />
-                  </div>
-                  <div className="flex-1 space-y-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{section.title}</p>
-                        <p className="text-sm text-muted-foreground">{section.subtitle}</p>
+              (() => {
+                const isExpanded = expandedSectionId === section.id;
+                return (
+                  <div key={section.id} className="rounded-3xl border border-slate-200/70 bg-white p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${section.iconBackground}`}>
+                        <IconComponent className={`h-5 w-5 ${section.iconColor}`} />
                       </div>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex-1 space-y-2.5">
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between gap-2 text-left"
+                          onClick={() => setExpandedSectionId(isExpanded ? null : section.id)}
+                        >
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{section.title}</p>
+                            <p className="text-sm text-muted-foreground">{section.subtitle}</p>
+                          </div>
+                          <ChevronDown
+                            className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                        {isExpanded && section.details && (
+                          <ul className="space-y-1.5 text-[12px] leading-relaxed text-muted-foreground">
+                            {section.details.map((detail, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-muted-foreground/70" />
+                                <span>{detail}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     </div>
-                    {section.details && (
-                      <ul className="space-y-1.5 text-[12px] leading-relaxed text-muted-foreground">
-                        {section.details.map((detail, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-muted-foreground/70" />
-                            <span>{detail}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
                   </div>
-                </div>
-              </div>
+                );
+              })()
             );
           })}
         </div>
