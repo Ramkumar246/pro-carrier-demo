@@ -126,3 +126,6 @@ All colors MUST be HSL.
 .trade-party-chart .recharts-legend-wrapper {
   bottom: 10px !important;
 }
+button.text-accent-foreground:hover {
+  color: var(--primary-foreground) !important;
+}

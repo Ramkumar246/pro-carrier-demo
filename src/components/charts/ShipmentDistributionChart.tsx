@@ -185,6 +185,9 @@ const ShipmentDistributionChart = () => {
       })
     );
     legend.data.setAll(series.dataItems);
+    legend.valueLabels.template.setAll({
+      text: "",
+    });
     legend.labels.template.setAll({
       fontSize: 12,
       fill: am5.color(foregroundColor),

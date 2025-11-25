@@ -55,11 +55,11 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
                 </DashboardCard>
                 
                 <DashboardCard title="Shipment Volumes">
-                  <ShipmentVolumesChart />
+                  <ShipmentVolumesChart showFullRange={isLayoutExpanded} />
                 </DashboardCard>
                 
                 <DashboardCard title="Total Freight Spend">
-                  <FreightWeightChart />
+                  <FreightWeightChart showFullRange={isLayoutExpanded} />
                 </DashboardCard>
 
                 <DashboardCard title="Shipment Mode by Volume">
@@ -82,11 +82,11 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
                 </DashboardCard>
                 
                 <DashboardCard title="Shipment Volumes">
-                  <ShipmentVolumesChart />
+                  <ShipmentVolumesChart showFullRange={isLayoutExpanded} />
                 </DashboardCard>
                 
                 <DashboardCard title="Total Freight Spend">
-                  <FreightWeightChart />
+                  <FreightWeightChart showFullRange={isLayoutExpanded} />
                 </DashboardCard>
 
                 <DashboardCard title="Shipment Mode by Volume">

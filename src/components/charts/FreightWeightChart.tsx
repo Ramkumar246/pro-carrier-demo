@@ -114,13 +114,22 @@ const useShipmentCostsData = () => {
   }, []);
 };
 
-const FreightWeightChart = () => {
+interface FreightWeightChartProps {
+  showFullRange?: boolean;
+}
+
+const FreightWeightChart = ({ showFullRange = false }: FreightWeightChartProps) => {
   const chartRef = useRef<am5xy.XYChart | null>(null);
   const rootRef = useRef<am5.Root | null>(null);
   const chartData = useShipmentCostsData();
+  const displayData = useMemo(() => {
+    if (!chartData.length) return [];
+    if (showFullRange || chartData.length <= 6) return chartData;
+    return chartData.slice(-6);
+  }, [chartData, showFullRange]);
 
   useEffect(() => {
-    if (!chartData.length) return;
+    if (!displayData.length) return;
 
     const root = am5.Root.new("freightWeightChart");
     root._logo?.dispose();
@@ -159,7 +168,7 @@ const FreightWeightChart = () => {
       })
     );
 
-    xAxis.data.setAll(chartData);
+    xAxis.data.setAll(displayData);
 
     xAxisRenderer.labels.template.adapters.add("text", (text, target) => {
       const dataItem = target.dataItem;
@@ -234,7 +243,7 @@ const FreightWeightChart = () => {
 
       series.columns.template.setAll(columnTemplate);
 
-      series.data.setAll(chartData);
+      series.data.setAll(displayData);
       series.appear(1000, 100);
       return series;
     };
@@ -272,9 +281,9 @@ const FreightWeightChart = () => {
     return () => {
       root.dispose();
     };
-  }, [chartData]);
+  }, [displayData]);
 
-  if (!chartData.length) {
+  if (!displayData.length) {
     return (
       <div className="flex h-48 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
         No freight spend data available.

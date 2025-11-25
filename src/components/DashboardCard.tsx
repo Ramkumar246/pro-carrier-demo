@@ -10,7 +10,7 @@ interface DashboardCardProps {
 const DashboardCard = ({ title, children, className }: DashboardCardProps) => {
   return (
     <Card className={`p-6 ${className}`}>
-      <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-muted-foreground  uppercase tracking-wide">
         {title}
       </h3>
       {children}

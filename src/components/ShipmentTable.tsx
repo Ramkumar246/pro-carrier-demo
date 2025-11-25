@@ -19,7 +19,7 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal, Search, Columns3 } from "lucide-react";
+import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal, Search } from "lucide-react";
 import type { Shipment } from "@/types/shipment";
 import type { DelayStage } from "@/lib/delay-utils";
 import { getStageDelay } from "@/lib/delay-utils";
@@ -692,16 +692,21 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
 };
 
 
-const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTableProps) => {
+const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTableProps) => {
   const gridRef = useRef<AgGridReact<Shipment>>(null);
   const apiRef = useRef<GridApi<Shipment> | null>(null);
   const columnApiRef = useRef<any>(null);
   const popupParent = typeof document !== 'undefined' ? document.body : undefined;
   const navigate = useNavigate();
   const [selectedCharts, setSelectedCharts] = useState<ChartSelection[]>([]);
-  const [isSideBarVisible, setIsSideBarVisible] = useState(false);
   const [isQuickFilterVisible, setIsQuickFilterVisible] = useState(false);
   const [quickFilterText, setQuickFilterText] = useState("");
+
+  const applyQuickFilter = useCallback((value: string) => {
+    if (apiRef.current && typeof (apiRef.current as any).setQuickFilter === "function") {
+      (apiRef.current as any).setQuickFilter(value);
+    }
+  }, []);
   const [delayChartData, setDelayChartData] = useState<DelayChartDatum[] | null>(null);
   const [containerMixData, setContainerMixData] = useState<ContainerMixDatum[] | null>(null);
   const [transportModeData, setTransportModeData] = useState<TransportModeDatum[] | null>(null);
@@ -717,24 +722,20 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
     });
   }, []);
 
-  const toggleSideBarVisibility = useCallback(() => {
-    setIsSideBarVisible((prev) => !prev);
-  }, []);
-
   const toggleQuickFilterVisibility = useCallback(() => {
     setIsQuickFilterVisible((prev) => {
       if (prev) {
         setQuickFilterText("");
-        apiRef.current?.setQuickFilter("");
+        applyQuickFilter("");
       }
       return !prev;
     });
-  }, []);
+  }, [applyQuickFilter]);
 
   const handleQuickFilterChange = useCallback((value: string) => {
     setQuickFilterText(value);
-    apiRef.current?.setQuickFilter(value);
-  }, []);
+    applyQuickFilter(value);
+  }, [applyQuickFilter]);
 
   const buildDelayChartData = useCallback((): DelayChartDatum[] => {
     const api = apiRef.current;
@@ -1307,6 +1308,7 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
         params.api.autoSizeColumns(allColumnIds, false);
       }
     }, 100);
+    params.api.closeToolPanel();
     setTimeout(() => renderCharts(), 0);
   }, [renderCharts]);
 
@@ -1381,12 +1383,6 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
     renderCharts();
   }, [data, renderCharts]);
 
-  useEffect(() => {
-    if (apiRef.current) {
-      apiRef.current.setSideBarVisible(isSideBarVisible);
-    }
-  }, [isSideBarVisible]);
-
   return (
     <div className="w-full">
       {/* Toolbar */}
@@ -1432,33 +1428,6 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
           <RefreshCw className="h-4 w-4" />
           Reset View
         </Button>
-        <Button
-          onClick={toggleQuickFilterVisibility}
-          variant={isQuickFilterVisible ? "secondary" : "outline"}
-          size="sm"
-          className="gap-2"
-        >
-          <Search className="h-4 w-4" />
-          Search
-        </Button>
-        {isQuickFilterVisible && (
-          <Input
-            value={quickFilterText}
-            onChange={(event) => handleQuickFilterChange(event.target.value)}
-            placeholder="Search all columns..."
-            className="w-64"
-            autoFocus
-          />
-        )}
-        <Button
-          onClick={toggleSideBarVisibility}
-          variant={isSideBarVisible ? "secondary" : "outline"}
-          size="sm"
-          className="gap-2"
-        >
-          <Columns3 className="h-4 w-4" />
-          {isSideBarVisible ? "Hide Column Panel" : "Show Column Panel"}
-        </Button>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -1484,6 +1453,24 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button
+            type="button"
+            onClick={toggleQuickFilterVisibility}
+            variant={isQuickFilterVisible ? "secondary" : "outline"}
+            size="icon"
+            className="h-9 w-9"
+          >
+            <Search className="h-4 w-4" />
+          </Button>
+          {isQuickFilterVisible && (
+            <Input
+              value={quickFilterText}
+              onChange={(event) => handleQuickFilterChange(event.target.value)}
+              placeholder="Search all columns..."
+              className="w-64"
+              autoFocus
+            />
+          )}
         </div>
       </div>
 
@@ -1535,7 +1522,7 @@ const ShipmentTable = ({ data, gridId, height = 520, activeFilter }: ShipmentTab
               },
             ],
             defaultToolPanel: 'columns',
-            hiddenByDefault: true,
+            hiddenByDefault: false,
           }}
           statusBar={{
             statusPanels: [
