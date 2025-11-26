@@ -1,17 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Location pin shape -->
-  <path d="M50 10 C30 10, 15 25, 15 45 C15 65, 50 90, 50 90 C50 90, 85 65, 85 45 C85 25, 70 10, 50 10 Z" fill="#4B0082"/>
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="45" fill="#212063"/>
   
-  <!-- Asterisk symbol inside -->
-  <g transform="translate(50, 50)">
-    <!-- Top arm (light blue/cyan) -->
-    <line x1="0" y1="-15" x2="0" y2="-5" stroke="#00CED1" stroke-width="4" stroke-linecap="round"/>
-    <!-- Right arm (yellow) -->
-    <line x1="10.6" y1="5" x2="3.5" y2="1.7" stroke="#FFD700" stroke-width="4" stroke-linecap="round"/>
-    <!-- Bottom arm (pink/magenta) -->
-    <line x1="0" y1="15" x2="0" y2="5" stroke="#FF1493" stroke-width="4" stroke-linecap="round"/>
-    <!-- Left arm (light blue/cyan) -->
-    <line x1="-10.6" y1="5" x2="-3.5" y2="1.7" stroke="#00CED1" stroke-width="4" stroke-linecap="round"/>
+  <!-- Ship/cargo icon -->
+  <g fill="#ffffff">
+    <!-- Ship hull -->
+    <path d="M20 60 L30 70 L70 70 L80 60 L75 60 L70 65 L30 65 L25 60 Z"/>
+    <!-- Container stack -->
+    <rect x="32" y="45" width="15" height="12" rx="1"/>
+    <rect x="50" y="45" width="15" height="12" rx="1"/>
+    <rect x="41" y="32" width="15" height="12" rx="1"/>
   </g>
 </svg>
-
