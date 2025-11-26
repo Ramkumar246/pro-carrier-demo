@@ -157,7 +157,7 @@ const DelayCellRenderer = (props: any) => {
 };
 
 const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
-  const chartRef = useRef<am5xy.XYChart | null>(null);
+  const chartRef = useRef<am5percent.PieChart | null>(null);
   const rootRef = useRef<am5.Root | null>(null);
   const chartIdRef = useRef(`delayChart-${Math.random().toString(36).substr(2, 9)}`);
 
@@ -176,51 +176,22 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
     const foregroundColor = getCSSVariableColor("--foreground");
 
     const chart = root.container.children.push(
-      am5xy.XYChart.new(root, {
-        panX: false,
-        panY: false,
-        wheelX: "panX",
-        wheelY: "zoomX",
+      am5percent.PieChart.new(root, {
         layout: root.verticalLayout,
+        innerRadius: am5.percent(50),
       })
     );
     chartRef.current = chart;
 
-    const xAxis = chart.xAxes.push(
-      am5xy.CategoryAxis.new(root, {
-        categoryField: "label",
-        renderer: am5xy.AxisRendererX.new(root, {
-          cellStartLocation: 0.1,
-          cellEndLocation: 0.9,
-        }),
-      })
-    );
-
-    const yAxis = chart.yAxes.push(
-      am5xy.ValueAxis.new(root, {
-        renderer: am5xy.AxisRendererY.new(root, {}),
-        min: 0,
-      })
-    );
-
     const series = chart.series.push(
-      am5xy.ColumnSeries.new(root, {
-        name: "Delay",
-        xAxis: xAxis,
-        yAxis: yAxis,
-        valueYField: "delay",
-        categoryXField: "label",
+      am5percent.PieSeries.new(root, {
+        valueField: "delay",
+        categoryField: "label",
       })
     );
 
-    series.columns.template.setAll({
-      cornerRadiusTL: 4,
-      cornerRadiusTR: 4,
-      strokeOpacity: 0,
-      tooltipText: "{categoryX}: {valueY} days",
-    });
-
-    series.columns.template.adapters.add("fill", (fill, target) => {
+    // Set colors for each slice based on stage
+    series.slices.template.adapters.add("fill", (fill, target) => {
       const dataItem = target.dataItem;
       if (dataItem) {
         const stage = (dataItem.dataContext as DelayChartDatum).stage;
@@ -229,15 +200,16 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
       return fill;
     });
 
-    series.data.setAll(data);
-    xAxis.data.setAll(data);
+    series.slices.template.setAll({
+      strokeWidth: 0,
+      strokeOpacity: 0,
+      tooltipText: "{category}: {value} days",
+    });
 
-    const cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
-    cursor.lineX.setAll({ strokeOpacity: 0.1 });
-    cursor.lineY.setAll({ strokeOpacity: 0.1 });
-
+    // Create and configure tooltip
     const tooltip = am5.Tooltip.new(root, {
       getFillFromSprite: false,
+      autoTextColor: false,
     });
     tooltip.get("background")?.setAll({
       fill: am5.color(cardColor),
@@ -248,7 +220,30 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
     tooltip.label.setAll({
       fill: am5.color(foregroundColor),
     });
-    series.set("tooltip", tooltip);
+    series.slices.template.set("tooltip", tooltip);
+
+    series.labels.template.setAll({
+      textType: "circular",
+      fontSize: 11,
+      fill: am5.color(foregroundColor),
+    });
+
+    series.data.setAll(data);
+
+    // Add legend
+    const legend = chart.children.push(
+      am5.Legend.new(root, {
+        centerX: am5.p50,
+        x: am5.p50,
+        marginTop: 10,
+        layout: root.horizontalLayout,
+      })
+    );
+    legend.data.setAll(series.dataItems);
+    legend.labels.template.setAll({
+      fontSize: 12,
+      fill: am5.color(foregroundColor),
+    });
 
     series.appear(1000);
     chart.appear(1000, 100);
