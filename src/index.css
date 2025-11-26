@@ -136,3 +136,9 @@ button.text-accent-foreground:hover {
 .ag-row-even {
   background-color: var(--row-even) !important;
 }
+
+/* Hide Mapbox logo and attribution */
+.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}

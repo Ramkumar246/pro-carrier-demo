@@ -5,6 +5,7 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { getCSSVariableColor } from "@/lib/chart-colors";
 import { shipmentData } from "@/data/shipments";
 import type { Shipment } from "@/types/shipment";
+import type { CrossFilterMode } from "@/pages/Index";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 const QUARTER_LABELS = ["Q1", "Q2", "Q3", "Q4"] as const;
@@ -122,9 +123,11 @@ const useShipmentVolumesData = () => {
 
 interface ShipmentVolumesChartProps {
   showFullRange?: boolean;
+  crossFilterMode?: CrossFilterMode;
+  onCrossFilterChange?: (mode: CrossFilterMode) => void;
 }
 
-const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartProps) => {
+const ShipmentVolumesChart = ({ showFullRange = false, crossFilterMode, onCrossFilterChange }: ShipmentVolumesChartProps) => {
   const chartRef = useRef<am5xy.XYChart | null>(null);
   const rootRef = useRef<am5.Root | null>(null);
   const chartData = useShipmentVolumesData();
@@ -212,7 +215,7 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
     yAxis.children.unshift(
       am5.Label.new(root, {
         rotation: -90,
-        text: "TEU",
+        text: "Cubic meter",
         y: am5.p50,
         centerX: am5.p50,
         fontWeight: "500",
@@ -224,7 +227,8 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
     const makeSeries = (
       name: string,
       field: keyof AggregatedMonth,
-      color: string
+      color: string,
+      mode: CrossFilterMode
     ) => {
       const series = chart.series.push(
         am5xy.ColumnSeries.new(root, {
@@ -236,12 +240,23 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
           stacked: true,
         })
       );
+      
+      // Determine opacity based on cross-filter
+      const isFiltered = crossFilterMode && crossFilterMode !== mode;
+      const fillOpacity = isFiltered ? 0.15 : 1;
 
       series.columns.template.setAll({
         strokeOpacity: 0,
         fill: am5.color(color),
+        fillOpacity,
         tooltipText: `${name} ({monthLabel}): {valueY.formatNumber('#,###')} TEU`,
         tooltipY: 0,
+        cursorOverStyle: "pointer",
+      });
+      
+      // Add click handler for cross-filtering
+      series.columns.template.events.on("click", () => {
+        onCrossFilterChange?.(mode);
       });
 
       // Dynamically apply border radius to the top segment of each column
@@ -306,9 +321,9 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
       return series;
     };
 
-    makeSeries("Sea", "sea", COLORS.sea);
-    makeSeries("Air", "air", COLORS.air);
-    makeSeries("Road", "road", COLORS.road);
+    makeSeries("Sea", "sea", COLORS.sea, "Sea");
+    makeSeries("Air", "air", COLORS.air, "Air");
+    makeSeries("Road", "road", COLORS.road, "Road");
 
     chart.set(
       "cursor",
@@ -350,7 +365,7 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
     return () => {
       root.dispose();
     };
-  }, [displayData]);
+  }, [displayData, crossFilterMode, onCrossFilterChange]);
 
   if (!displayData.length) {
     return (

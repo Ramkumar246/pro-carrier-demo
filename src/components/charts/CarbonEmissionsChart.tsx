@@ -3,6 +3,7 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { getCSSVariableColor } from "@/lib/chart-colors";
+import type { CrossFilterMode } from "@/pages/Index";
 
 // Sample data for last 6 months - Spline graph with weight/emissions on Y-axis, months on X-axis
 // Values stay within 0-600 kg so we can highlight every 100 kg tick on the axis
@@ -15,7 +16,12 @@ const data = [
   { month: "Dec", sea: 510, road: 300, air: 250 },
 ];
 
-const CarbonEmissionsChart = () => {
+interface CarbonEmissionsChartProps {
+  crossFilterMode?: CrossFilterMode;
+  onCrossFilterChange?: (mode: CrossFilterMode) => void;
+}
+
+const CarbonEmissionsChart = ({ crossFilterMode, onCrossFilterChange }: CarbonEmissionsChartProps) => {
   const chartRef = useRef<am5xy.XYChart | null>(null);
   const rootRef = useRef<am5.Root | null>(null);
 
@@ -152,6 +158,43 @@ const CarbonEmissionsChart = () => {
     roadSeries.data.setAll(data);
     airSeries.data.setAll(data);
     xAxis.data.setAll(data);
+    
+    // Add click events for cross-filtering
+    const addClickHandler = (series: am5xy.SmoothedXLineSeries, mode: CrossFilterMode) => {
+      series.strokes.template.events.on("click", () => {
+        onCrossFilterChange?.(mode);
+      });
+      series.strokes.template.set("cursorOverStyle", "pointer");
+      // Add click on bullet circles via bulletsContainer
+      series.bulletsContainer.children.each((bullet) => {
+        bullet.events.on("click", () => {
+          onCrossFilterChange?.(mode);
+        });
+      });
+    };
+    
+    addClickHandler(seaSeries, "Sea");
+    addClickHandler(roadSeries, "Road");
+    addClickHandler(airSeries, "Air");
+    
+    // Apply cross-filter visual state - dim non-selected series
+    const applyFilterState = () => {
+      const allSeries = [
+        { series: seaSeries, mode: "Sea" },
+        { series: roadSeries, mode: "Road" },
+        { series: airSeries, mode: "Air" },
+      ];
+      
+      allSeries.forEach(({ series, mode }) => {
+        if (!crossFilterMode || crossFilterMode === mode) {
+          series.strokes.template.setAll({ strokeOpacity: 1 });
+        } else {
+          series.strokes.template.setAll({ strokeOpacity: 0.15 });
+        }
+      });
+    };
+    
+    applyFilterState();
     const cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
     cursor.set("snapToSeries", [seaSeries, roadSeries, airSeries]);
     cursor.get("tooltip")?.set("forceHidden", true);
@@ -180,9 +223,9 @@ const CarbonEmissionsChart = () => {
     return () => {
       root.dispose();
     };
-  }, []);
+  }, [crossFilterMode, onCrossFilterChange]);
 
-  return <div id="carbonEmissionsChart" style={{ width: "100%", height: "230px" }} />;
+  return <div id="carbonEmissionsChart" style={{ width: "100%", height: "230px", cursor: "pointer" }} />;
 };
 
 export default CarbonEmissionsChart;

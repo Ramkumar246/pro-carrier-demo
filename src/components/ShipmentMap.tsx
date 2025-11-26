@@ -347,7 +347,7 @@ const ShipmentMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
-  
+
   // Helper function to create GeoJSON from vessels array
   const createVesselsGeoJSON = (vesselList: Vessel[]) => {
     return {
@@ -432,6 +432,7 @@ const ShipmentMap = () => {
       projection: { name: "mercator" },
       zoom: 1.5,
       center: [30, 20],
+      attributionControl: false,
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
@@ -557,7 +558,7 @@ const ShipmentMap = () => {
       // Helper function to handle vessel click
       const handleVesselClick = (e: any) => {
         if (!e.features || e.features.length === 0) return;
-        
+
         const coordinates = (e.features[0].geometry as any).coordinates.slice();
         const vesselId = e.features[0].properties?.id;
         const vessel = vessels.find((v) => v.id === vesselId);
@@ -567,7 +568,7 @@ const ShipmentMap = () => {
         // Zoom to vessel and show route
         const bounds = new mapboxgl.LngLatBounds();
         vessel.route.forEach((coord) => bounds.extend(coord as [number, number]));
-        
+
         map.current.fitBounds(bounds, {
           padding: 100,
           duration: 1000,
@@ -716,7 +717,7 @@ const ShipmentMap = () => {
 
       // Show popup on vessel click (circle layer)
       map.current.on("click", "unclustered-point", handleVesselClick);
-      
+
       // Show popup on vessel click (icon layer - if it exists)
       map.current.on("click", "unclustered-point-icon", handleVesselClick);
 
@@ -750,7 +751,7 @@ const ShipmentMap = () => {
       // Helper function to handle vessel hover
       const handleVesselHover = (e: any) => {
         if (!e.features || e.features.length === 0 || !map.current) return;
-        
+
         const coordinates = (e.features[0].geometry as any).coordinates.slice();
         const props = e.features[0].properties;
 
@@ -784,7 +785,7 @@ const ShipmentMap = () => {
 
   const closeDetailPopup = () => {
     setSelectedVessel(null);
-    
+
     if (map.current) {
       // Restore all vessels with clustering enabled
       const source = map.current.getSource("vessels") as mapboxgl.GeoJSONSource;
@@ -829,7 +830,7 @@ const ShipmentMap = () => {
   return (
     <Card className="relative overflow-hidden">
       <div ref={mapContainer} className="w-full h-[500px] md:h-[560px] lg:h-[600px] xl:h-[700px]" />
-      
+
       {selectedVessel && (
         <div className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg shadow-lg p-4 max-w-sm max-h-[calc(100%-2rem)] overflow-y-auto border">
           <div className="flex justify-between items-start mb-3">
@@ -893,14 +894,12 @@ const ShipmentMap = () => {
                   {selectedVessel.segments.map((segment, idx) => (
                     <div
                       key={idx}
-                      className={`flex items-center gap-2 text-xs p-2 rounded ${
-                        segment.completed ? "bg-primary/10" : "bg-muted"
-                      }`}
+                      className={`flex items-center gap-2 text-xs p-2 rounded ${segment.completed ? "bg-primary/10" : "bg-muted"
+                        }`}
                     >
                       <div
-                        className={`w-2 h-2 rounded-full ${
-                          segment.completed ? "bg-primary" : "bg-muted-foreground"
-                        }`}
+                        className={`w-2 h-2 rounded-full ${segment.completed ? "bg-primary" : "bg-muted-foreground"
+                          }`}
                       />
                       <span>{segment.from} → {segment.to}</span>
                       <span className="ml-auto capitalize">{segment.mode}</span>

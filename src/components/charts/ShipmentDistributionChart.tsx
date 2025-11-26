@@ -5,6 +5,7 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { getCSSVariableColor } from "@/lib/chart-colors";
 import { shipmentData } from "@/data/shipments";
 import type { Shipment } from "@/types/shipment";
+import type { CrossFilterMode } from "@/pages/Index";
 
 const COLORS = {
   Sea: "#212063", // Dark blue
@@ -69,7 +70,12 @@ const useTransportModeData = () => {
   }, []);
 };
 
-const ShipmentDistributionChart = () => {
+interface ShipmentDistributionChartProps {
+  crossFilterMode?: CrossFilterMode;
+  onCrossFilterChange?: (mode: CrossFilterMode) => void;
+}
+
+const ShipmentDistributionChart = ({ crossFilterMode, onCrossFilterChange }: ShipmentDistributionChartProps) => {
   const chartRef = useRef<am5percent.PieChart | null>(null);
   const rootRef = useRef<am5.Root | null>(null);
   const chartData = useTransportModeData();
@@ -143,7 +149,7 @@ const ShipmentDistributionChart = () => {
     // Apply tooltip to series template BEFORE setting other properties
     series.slices.template.set("tooltip", tooltip);
 
-    // Set colors for each slice based on category
+    // Set colors for each slice based on category and apply cross-filter opacity
     series.slices.template.adapters.add("fill", (fill, target) => {
       const dataItem = target.dataItem;
       if (!dataItem) return fill;
@@ -154,12 +160,34 @@ const ShipmentDistributionChart = () => {
       }
       return fill;
     });
+    
+    // Apply opacity based on cross-filter
+    series.slices.template.adapters.add("fillOpacity", (opacity, target) => {
+      if (!crossFilterMode) return 1;
+      const dataItem = target.dataItem;
+      if (!dataItem) return opacity;
+      const dataContext = dataItem.dataContext as { name: string };
+      const category = dataContext?.name;
+      return category === crossFilterMode ? 1 : 0.15;
+    });
 
     series.slices.template.setAll({
       strokeWidth: 0,
       strokeOpacity: 0,
       fillOpacity: 1,
       tooltipText: "{category}: {value} TEU",
+      cursorOverStyle: "pointer",
+    });
+    
+    // Add click handler for cross-filtering
+    series.slices.template.events.on("click", (ev) => {
+      const dataItem = ev.target.dataItem;
+      if (!dataItem) return;
+      const dataContext = dataItem.dataContext as { name: string };
+      const mode = dataContext?.name as CrossFilterMode;
+      if (mode) {
+        onCrossFilterChange?.(mode);
+      }
     });
 
     series.data.setAll(chartData);
@@ -201,7 +229,7 @@ const ShipmentDistributionChart = () => {
     return () => {
       root.dispose();
     };
-  }, [chartData, chartId]);
+  }, [chartData, chartId, crossFilterMode, onCrossFilterChange]);
 
   if (!chartData.length) {
     return (

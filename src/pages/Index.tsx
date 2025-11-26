@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Ship, ChevronDown, ChevronUp, Search } from "lucide-react";
 import DashboardCard from "@/components/DashboardCard";
 import CarbonEmissionsChart from "@/components/charts/CarbonEmissionsChart";
@@ -12,6 +12,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Badge } from "@/components/ui/badge";
 import { filterShipmentsByMode, shipmentData, type TransportFilter } from "@/data/shipments";
 
+// Cross-filter mode type for chart filtering
+export type CrossFilterMode = "Sea" | "Air" | "Road" | null;
+
 interface IndexProps {
   isLayoutExpanded?: boolean;
 }
@@ -21,6 +24,14 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
   const [pendingOpen, setPendingOpen] = useState(false);
   const [completedOpen, setCompletedOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<TransportFilter>("Sea");
+  
+  // Cross-filter state - when a mode is selected, all charts filter to show only that mode
+  const [crossFilterMode, setCrossFilterMode] = useState<CrossFilterMode>(null);
+  
+  // Toggle cross-filter: click same mode again to clear filter
+  const handleCrossFilterChange = useCallback((mode: CrossFilterMode) => {
+    setCrossFilterMode((prev) => (prev === mode ? null : mode));
+  }, []);
 
   const inTransitShipments = useMemo(
     () => filterShipmentsByMode(shipmentData.inTransit, activeFilter),
@@ -51,19 +62,19 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 transition-all duration-500 ease-in-out">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
                 <DashboardCard title="Carbon Emissions">
-                  <CarbonEmissionsChart />
+                  <CarbonEmissionsChart crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
                 
                 <DashboardCard title="Shipment Volumes">
-                  <ShipmentVolumesChart showFullRange={isLayoutExpanded} />
+                  <ShipmentVolumesChart showFullRange={isLayoutExpanded} crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
                 
                 <DashboardCard title="Total Freight Spend">
-                  <FreightWeightChart showFullRange={isLayoutExpanded} />
+                  <FreightWeightChart showFullRange={isLayoutExpanded} crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
 
                 <DashboardCard title="Shipment Mode by Volume">
-                  <ShipmentDistributionChart />
+                  <ShipmentDistributionChart crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
               </div>
               
@@ -78,19 +89,19 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
             <div className="space-y-6 transition-all duration-500 ease-in-out">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <DashboardCard title="Carbon Emissions">
-                  <CarbonEmissionsChart />
+                  <CarbonEmissionsChart crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
                 
                 <DashboardCard title="Shipment Volumes">
-                  <ShipmentVolumesChart showFullRange={isLayoutExpanded} />
+                  <ShipmentVolumesChart showFullRange={isLayoutExpanded} crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
                 
                 <DashboardCard title="Total Freight Spend">
-                  <FreightWeightChart showFullRange={isLayoutExpanded} />
+                  <FreightWeightChart showFullRange={isLayoutExpanded} crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
 
                 <DashboardCard title="Shipment Mode by Volume">
-                  <ShipmentDistributionChart />
+                  <ShipmentDistributionChart crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
               </div>
 
