@@ -224,8 +224,7 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
     const makeSeries = (
       name: string,
       field: keyof AggregatedMonth,
-      color: string,
-      isTopStack: boolean = false
+      color: string
     ) => {
       const series = chart.series.push(
         am5xy.ColumnSeries.new(root, {
@@ -238,29 +237,78 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
         })
       );
 
-      const columnTemplate = {
+      series.columns.template.setAll({
         strokeOpacity: 0,
         fill: am5.color(color),
         tooltipText: `${name} ({monthLabel}): {valueY.formatNumber('#,###')} TEU`,
         tooltipY: 0,
-      };
+      });
 
-      // Only apply corner radius to the top stack (Road series)
-      if (isTopStack) {
-        (columnTemplate as any).cornerRadiusTL = 4;
-        (columnTemplate as any).cornerRadiusTR = 4;
-      }
+      // Dynamically apply border radius to the top segment of each column
+      series.columns.template.adapters.add("cornerRadiusTL", (radius, target) => {
+        const dataItem = target.dataItem;
+        if (!dataItem) return 0;
 
-      series.columns.template.setAll(columnTemplate);
+        // Check if this is the topmost visible segment in this column
+        const category = (dataItem.dataContext as any)?.key;
+        if (!category) return 0;
+        let isTop = true;
+
+        // Check all series that come after this one
+        const currentIndex = chart.series.indexOf(series);
+        for (let i = currentIndex + 1; i < chart.series.length; i++) {
+          const otherSeries = chart.series.getIndex(i) as am5xy.ColumnSeries;
+          // Skip if the series is hidden via legend
+          if (otherSeries.isHidden()) continue;
+
+          const otherDataItem = otherSeries.dataItems.find(
+            (di) => (di.dataContext as any)?.key === category
+          );
+          if (otherDataItem && otherDataItem.get("valueY") > 0) {
+            isTop = false;
+            break;
+          }
+        }
+
+        return isTop ? 4 : 0;
+      });
+
+      series.columns.template.adapters.add("cornerRadiusTR", (radius, target) => {
+        const dataItem = target.dataItem;
+        if (!dataItem) return 0;
+
+        // Check if this is the topmost visible segment in this column
+        const category = (dataItem.dataContext as any)?.key;
+        if (!category) return 0;
+        let isTop = true;
+
+        // Check all series that come after this one
+        const currentIndex = chart.series.indexOf(series);
+        for (let i = currentIndex + 1; i < chart.series.length; i++) {
+          const otherSeries = chart.series.getIndex(i) as am5xy.ColumnSeries;
+          // Skip if the series is hidden via legend
+          if (otherSeries.isHidden()) continue;
+
+          const otherDataItem = otherSeries.dataItems.find(
+            (di) => (di.dataContext as any)?.key === category
+          );
+          if (otherDataItem && otherDataItem.get("valueY") > 0) {
+            isTop = false;
+            break;
+          }
+        }
+
+        return isTop ? 4 : 0;
+      });
 
       series.data.setAll(displayData);
       series.appear(1000, 100);
       return series;
     };
 
-    makeSeries("Sea", "sea", COLORS.sea, false);
-    makeSeries("Air", "air", COLORS.air, false);
-    makeSeries("Road", "road", COLORS.road, true);
+    makeSeries("Sea", "sea", COLORS.sea);
+    makeSeries("Air", "air", COLORS.air);
+    makeSeries("Road", "road", COLORS.road);
 
     chart.set(
       "cursor",
@@ -282,6 +330,19 @@ const ShipmentVolumesChart = ({ showFullRange = false }: ShipmentVolumesChartPro
     legend.labels.template.setAll({
       fontSize: 12,
       fill: am5.color(foregroundColor),
+    });
+
+    // Force update of corner radius when legend is toggled
+    legend.itemContainers.template.events.on("click", () => {
+      setTimeout(() => {
+        chart.series.each((s) => {
+          if (s instanceof am5xy.ColumnSeries) {
+            s.columns.each((column) => {
+              column.markDirty();
+            });
+          }
+        });
+      }, 100);
     });
 
     chart.appear(1000, 100);
