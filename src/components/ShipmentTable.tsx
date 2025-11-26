@@ -396,10 +396,6 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
     return CONTAINER_MODE_COLORS[mode] || getCSSVariableColor("--muted-foreground");
   };
 
-  const getTransportColor = (mode: string) => {
-    return TRANSPORT_MODE_COLORS[mode] || getCSSVariableColor("--muted-foreground");
-  };
-
   useEffect(() => {
     if (!transportData.length) return;
 
@@ -417,88 +413,80 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.verticalLayout,
+        innerRadius: am5.percent(30),
       })
     );
     chartRef.current = chart;
 
-    // Inner ring - Transport modes
-    const transportSeries = chart.series.push(
+    // Variable Radius Pie Series - Container modes (FCL, LCL, ROR, LSE) with variable radius
+    const series = chart.series.push(
       am5percent.PieSeries.new(root, {
         valueField: "value",
         categoryField: "label",
-        innerRadius: am5.percent(40),
-        radius: am5.percent(65),
       })
     );
 
-    transportSeries.slices.template.setAll({
-      strokeWidth: 0,
-      tooltipText: "{category}: {value} shipments",
-    });
+    // Calculate max value for radius scaling
+    const maxValue = Math.max(...transportData.map((d) => d.value));
 
-    transportSeries.data.setAll(
-      transportData.map((entry) => ({
-        label: entry.label,
-        value: entry.value,
-        fill: am5.color(getTransportColor(entry.mode)),
-      }))
-    );
+    // Prepare data with radius field for variable radius effect
+    const chartData = transportData.map((entry) => ({
+      label: entry.label,
+      value: entry.value,
+      mode: entry.mode,
+    }));
 
-    transportSeries.labels.template.setAll({
-      textType: "circular",
-      centerX: 0,
-      centerY: 0,
-      fill: am5.color("#ffffff"),
-      fontSize: 12,
-      fontWeight: "600",
-    });
-
-    // Outer ring - Container modes
-    const containerSeries = chart.series.push(
-      am5percent.PieSeries.new(root, {
-        valueField: "value",
-        categoryField: "label",
-        innerRadius: am5.percent(70),
-        radius: am5.percent(90),
-      })
-    );
-
-    const allContainerData: Array<ContainerMixDatum & { transportMode: string }> = [];
-    transportData.forEach((transport) => {
-      if (transport.containerModes) {
-        transport.containerModes.forEach((container) => {
-          allContainerData.push({
-            ...container,
-            transportMode: transport.mode,
-          });
-        });
+    // Set colors for each slice based on container mode (FCL, LCL, ROR, LSE)
+    series.slices.template.adapters.add("fill", (fill, target) => {
+      const dataItem = target.dataItem;
+      if (dataItem) {
+        const dataContext = dataItem.dataContext as { mode: string };
+        if (dataContext?.mode) {
+          return am5.color(getContainerColor(dataContext.mode));
+        }
       }
+      return fill;
     });
 
-    containerSeries.slices.template.setAll({
-      strokeWidth: 0,
+    // Variable radius based on value
+    series.slices.template.adapters.add("radius", (radius, target) => {
+      const dataItem = target.dataItem;
+      if (dataItem && radius) {
+        const dataContext = dataItem.dataContext as { value: number };
+        const value = dataContext?.value || 0;
+        // Scale radius: min 70%, max 100% based on value
+        const scaleFactor = 0.7 + (value / maxValue) * 0.3;
+        return radius * scaleFactor;
+      }
+      return radius;
+    });
+
+    series.slices.template.setAll({
+      strokeWidth: 2,
+      stroke: am5.color(cardColor),
       tooltipText: "{category}: {value} shipments",
+      cornerRadius: 5,
     });
 
-    containerSeries.data.setAll(
-      allContainerData.map((entry) => ({
-        label: entry.label,
-        value: entry.value,
-        fill: am5.color(getContainerColor(entry.mode)),
-      }))
-    );
+    series.data.setAll(chartData);
 
-    containerSeries.labels.template.setAll({
+    series.labels.template.setAll({
       textType: "circular",
       centerX: 0,
       centerY: 0,
-      fill: am5.color("#ffffff"),
-      fontSize: 12,
-      fontWeight: "600",
+      fill: am5.color(foregroundColor),
+      fontSize: 11,
+    });
+
+    // Add ticks connecting labels to slices
+    series.ticks.template.setAll({
+      strokeOpacity: 0.5,
+      stroke: am5.color(foregroundColor),
     });
 
     const tooltip = am5.Tooltip.new(root, {
       getFillFromSprite: false,
+      autoTextColor: false,
     });
     tooltip.get("background")?.setAll({
       fill: am5.color(cardColor),
@@ -509,11 +497,24 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
     tooltip.label.setAll({
       fill: am5.color(foregroundColor),
     });
-    transportSeries.set("tooltip", tooltip);
-    containerSeries.set("tooltip", tooltip);
+    series.slices.template.set("tooltip", tooltip);
 
-    transportSeries.appear(1000, 100);
-    containerSeries.appear(1000, 100);
+    // Add legend
+    const legend = chart.children.push(
+      am5.Legend.new(root, {
+        centerX: am5.p50,
+        x: am5.p50,
+        marginTop: 15,
+        layout: root.horizontalLayout,
+      })
+    );
+    legend.data.setAll(series.dataItems);
+    legend.labels.template.setAll({
+      fontSize: 12,
+      fill: am5.color(foregroundColor),
+    });
+
+    series.appear(1000, 100);
     chart.appear(1000, 100);
 
     return () => {
@@ -534,7 +535,7 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
       <div className="mb-4 flex flex-col gap-1">
         <h3 className="text-base font-semibold text-foreground">Container Mix</h3>
         <p className="text-sm text-muted-foreground">
-          Inner ring shows transport modes (Sea, Air, Road). Outer ring shows container modes nested within their transport modes.
+          Variable radius pie chart showing container modes (FCL, LCL, ROR, LSE). Slice radius varies based on shipment count.
         </p>
       </div>
       <div className="h-[400px] w-full pt-4">
@@ -770,37 +771,23 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     const api = apiRef.current;
     if (!api) return [];
 
-    const transportData: Record<string, Record<string, number>> = {};
+    // Aggregate by container mode (FCL, LCL, ROR, LSE) instead of transport mode
+    const containerData: Record<string, number> = {};
 
     api.forEachNodeAfterFilterAndSort((node) => {
       const row = node.data;
-      if (!row?.transportMode || !row?.containerMode) return;
+      if (!row?.containerMode) return;
 
-      if (!transportData[row.transportMode]) {
-        transportData[row.transportMode] = {};
-      }
-      transportData[row.transportMode][row.containerMode] =
-        (transportData[row.transportMode][row.containerMode] || 0) + 1;
+      containerData[row.containerMode] = (containerData[row.containerMode] || 0) + 1;
     });
 
-    return Object.entries(transportData).map(([transportMode, containerCounts]) => {
-      const totalCount = Object.values(containerCounts).reduce((sum, count) => sum + count, 0);
-      const containerModes = Object.entries(containerCounts).map(([mode, count]) => ({
-        label: mode,
-        value: count,
-        mode,
-        color: CONTAINER_MODE_COLORS[mode] ?? "#94a3b8",
-        transportMode,
-      }));
-
-      return {
-        label: transportMode,
-        value: totalCount,
-        mode: transportMode,
-        color: TRANSPORT_MODE_COLORS[transportMode] ?? "#94a3b8",
-        containerModes,
-      };
-    });
+    return Object.entries(containerData).map(([containerMode, count]) => ({
+      label: containerMode,
+      value: count,
+      mode: containerMode,
+      color: CONTAINER_MODE_COLORS[containerMode] ?? "#94a3b8",
+      containerModes: [],
+    }));
   }, []);
 
   const buildTradePartyCostData = useCallback((): TradePartyCostDatum[] => {
