@@ -889,7 +889,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     {
       headerName: 'STATUS',
       field: 'status',
-      cellRenderer: StatusCellRenderer,
+      // cellRenderer: StatusCellRenderer,
       minWidth: 150,
       flex: 0,
       width: 200,
