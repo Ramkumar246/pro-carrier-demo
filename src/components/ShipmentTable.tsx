@@ -939,6 +939,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     },
     {
       headerName: 'DEPARTURE',
+      headerClass: 'pc-header-center',
       children: [
         {
           headerName: 'ETD',
@@ -971,6 +972,8 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
         },
         {
           headerName: 'Delay',
+          headerClass: 'pc-header-right',
+          cellClass: 'pc-cell-right',
           colId: 'departureDelay',
           minWidth: 100,
           flex: 0,
@@ -994,6 +997,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     },
     {
       headerName: 'ARRIVAL',
+      headerClass: 'pc-header-center',
       children: [
         {
           headerName: 'ETA',
@@ -1026,6 +1030,8 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
         },
         {
           headerName: 'Delay',
+          headerClass: 'pc-header-right',
+          cellClass: 'pc-cell-right',
           colId: 'arrivalDelay',
           minWidth: 100,
           flex: 0,
@@ -1049,6 +1055,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     },
     {
       headerName: 'PICKUP',
+      headerClass: 'pc-header-center',
       children: [
         {
           headerName: 'Date',
@@ -1067,6 +1074,8 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
         },
         {
           headerName: 'Delay',
+          headerClass: 'pc-header-right',
+          cellClass: 'pc-cell-right',
           minWidth: 100,
           flex: 0,
           width: 120,
@@ -1089,6 +1098,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     },
     {
       headerName: 'DELIVERY',
+      headerClass: 'pc-header-center',
       children: [
         {
           headerName: 'Date',
@@ -1107,6 +1117,8 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
         },
         {
           headerName: 'Delay',
+          headerClass: 'pc-header-right',
+          cellClass: 'pc-cell-right',
           minWidth: 100,
           flex: 0,
           width: 120,
@@ -1144,6 +1156,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     },
     {
       headerName: 'GROSS WEIGHT (kg)',
+      headerClass: 'pc-header-right',
       field: 'grossWeight',
       minWidth: 140,
       flex: 0,
@@ -1154,10 +1167,11 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       resizable: true,
       enableValue: true,
       wrapText: true,
-      cellStyle: { justifyContent: 'flex-end' },
+      cellClass: 'pc-cell-right',
     },
     {
       headerName: 'VOLUME (TEU)',
+      headerClass: 'pc-header-right',
       field: 'volumeTeu',
       minWidth: 120,
       flex: 0,
@@ -1168,10 +1182,11 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       resizable: true,
       enableValue: true,
       wrapText: true,
-      cellStyle: { justifyContent: 'flex-end' },
+      cellClass: 'pc-cell-right',
     },
     {
       headerName: 'CONTAINERS',
+      headerClass: 'pc-header-right',
       field: 'containers',
       minWidth: 110,
       flex: 0,
@@ -1182,10 +1197,11 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       resizable: true,
       enableValue: true,
       wrapText: true,
-      cellStyle: { justifyContent: 'flex-end' },
+      cellClass: 'pc-cell-right',
     },
     {
       headerName: 'EST. COST (USD)',
+      headerClass: 'pc-header-right',
       field: 'costUsd',
       minWidth: 150,
       flex: 0,
@@ -1200,10 +1216,11 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       },
       enableValue: true,
       wrapText: true,
-      cellStyle: { justifyContent: 'flex-end' },
+      cellClass: 'pc-cell-right',
     },
     {
       headerName: 'TOTAL CO₂e (kg)',
+      headerClass: 'pc-header-right',
       field: 'emissionCo2eKg',
       minWidth: 150,
       flex: 0,
@@ -1218,11 +1235,12 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       },
       enableValue: true,
       wrapText: true,
+      cellClass: 'pc-cell-right',
       cellStyle: (params) => {
         if (params.value == null || params.value === undefined) {
-          return { color: 'hsl(var(--muted-foreground))', fontStyle: 'italic', justifyContent: 'flex-end' };
+          return { color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' };
         }
-        return { justifyContent: 'flex-end' };
+        return {};
       },
     },
   ], [areFloatingFiltersVisible]);
@@ -1294,7 +1312,18 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     }, 100);
     params.api.closeToolPanel();
     setTimeout(() => renderCharts(), 0);
-  }, [renderCharts]);
+
+    // Move the paging panel inside the status bar so they share one band
+    setTimeout(() => {
+      const gridElement = document.getElementById(gridId);
+      if (!gridElement) return;
+      const statusBar = gridElement.querySelector<HTMLElement>('.ag-status-bar');
+      const pagingPanel = gridElement.querySelector<HTMLElement>('.ag-paging-panel');
+      if (statusBar && pagingPanel && pagingPanel.parentElement !== statusBar) {
+        statusBar.insertBefore(pagingPanel, statusBar.firstChild);
+      }
+    }, 0);
+  }, [renderCharts, gridId]);
 
   // Export to CSV
   const onExportCSV = useCallback(() => {
@@ -1451,6 +1480,9 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
           theme={themeQuartz}
           rowSelection="multiple"
           animateRows={true}
+          pagination
+          paginationPageSize={10}
+          paginationPageSizeSelector={[10, 25, 50, 100]}
           // suppressRowClickSelection={true}
           domLayout="autoHeight"
           suppressContextMenu={false}
@@ -1482,6 +1514,13 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
             ],
             defaultToolPanel: 'columns',
             hiddenByDefault: true,
+          }}
+          statusBar={{
+            statusPanels: [
+              { statusPanel: 'agFilteredRowCountComponent' },
+              { statusPanel: 'agTotalAndFilteredRowCountComponent' },
+              { statusPanel: 'agAggregationComponent' },
+            ],
           }}
           autoGroupColumnDef={autoGroupColumnDef}
           rowGroupPanelShow="always"

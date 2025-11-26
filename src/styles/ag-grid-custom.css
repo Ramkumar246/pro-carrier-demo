@@ -26,7 +26,6 @@
   --ag-header-cell-vertical-padding: 14px;
   /* Flat white rows with subtle horizontal grid lines */
   --ag-odd-row-background-color: hsl(var(--card));
-  --ag-even-row-background-color: hsl(247 82% 30% / 0.04);
   --ag-row-border-style: solid;
   --ag-row-border-color: hsl(var(--border));
   width: 100%;
@@ -47,7 +46,6 @@
   --ag-foreground-color: hsl(var(--foreground));
   --ag-header-background-color: hsl(var(--muted) / 0.5);
   --ag-odd-row-background-color: hsl(var(--card));
-  --ag-even-row-background-color: hsl(247 82% 30% / 0.08);
   --ag-row-hover-color: hsl(var(--muted) / 0.3);
   --ag-border-color: hsl(var(--border));
 }
@@ -58,6 +56,19 @@
   text-transform: uppercase;
   font-size: 11px;
   letter-spacing: 0.5px;
+}
+
+/* Header alignment helpers */
+.ag-theme-quartz .pc-header-center .ag-header-cell-label,
+.ag-theme-quartz .pc-header-center .ag-header-group-cell-label {
+  justify-content: center;
+  text-align: center;
+}
+
+.ag-theme-quartz .pc-header-right .ag-header-cell-label,
+.ag-theme-quartz .pc-header-right .ag-header-group-cell-label {
+  justify-content: flex-end;
+  text-align: right;
 }
 
 /* Adjust column header resize handle position */
@@ -85,6 +96,17 @@
   word-wrap: break-word;
   overflow: visible;
   text-overflow: clip;
+}
+
+/* Cell alignment helpers */
+.ag-theme-quartz .pc-cell-center {
+  justify-content: center;
+  text-align: center;
+}
+
+.ag-theme-quartz .pc-cell-right {
+  justify-content: flex-end;
+  text-align: right;
 }
 
 /* Checkbox styles */
@@ -120,25 +142,25 @@
   padding: 8px;
 }
 
-/* Pagination styles - pinned to extreme right of bottom bar */
+/* Pagination styles - rendered inside status bar (left side) */
 .ag-theme-quartz .ag-paging-panel {
-  position: absolute;
-  bottom: 0;
   border-top: none;
   background-color: transparent;
-  padding: 8px 0;
+  padding: 0;
+  margin: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
 }
 
-/* Status bar styles */
+/* Status bar styles: single band with paging on left, status items on right */
 .ag-theme-quartz .ag-status-bar {
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   background-color: hsl(var(--muted) / 0.3);
   border-top: 1px solid hsl(var(--border));
   padding: 8px 12px;
-  padding-right: 220px; /* leave room on the right for paging panel */
 }
 
 /* Scrollbar customization */
