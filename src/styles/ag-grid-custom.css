@@ -24,7 +24,7 @@
   --ag-header-cell-vertical-padding: 14px;
   /* Flat white rows with subtle horizontal grid lines */
   --ag-odd-row-background-color: hsl(var(--card));
-  --ag-even-row-background-color: hsl(var(--card));
+  --ag-even-row-background-color: hsl(247 82% 30% / 0.04);
   --ag-row-border-style: solid;
   --ag-row-border-color: hsl(var(--border));
   width: 100%;
@@ -43,6 +43,7 @@
   --ag-foreground-color: hsl(var(--foreground));
   --ag-header-background-color: hsl(var(--muted) / 0.5);
   --ag-odd-row-background-color: hsl(var(--card));
+  --ag-even-row-background-color: hsl(247 82% 30% / 0.08);
   --ag-row-hover-color: hsl(var(--muted) / 0.3);
   --ag-border-color: hsl(var(--border));
 }

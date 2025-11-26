@@ -58,6 +58,8 @@ All colors MUST be HSL.
     --success: 142 60% 50%;
     --warning: 38 80% 55%;
     --info: 199 80% 45%;
+
+    --row-even: rgb(240 240 247);
   }
 
   .dark {
@@ -126,6 +128,11 @@ All colors MUST be HSL.
 .trade-party-chart .recharts-legend-wrapper {
   bottom: 10px !important;
 }
+
 button.text-accent-foreground:hover {
   color: var(--primary-foreground) !important;
+}
+
+.ag-row-even {
+  background-color: var(--row-even) !important;
 }
