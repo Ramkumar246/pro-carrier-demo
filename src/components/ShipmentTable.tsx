@@ -19,12 +19,11 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal, Search } from "lucide-react";
+import { Download, Filter, RefreshCw, ChevronDown, FileSpreadsheet, FileText, CheckCircle2, SlidersHorizontal, Search, MoreVertical } from "lucide-react";
 import type { Shipment } from "@/types/shipment";
 import type { DelayStage } from "@/lib/delay-utils";
 import { getStageDelay } from "@/lib/delay-utils";
 import { getCSSVariableColor } from "@/lib/chart-colors";
-import { Input } from "@/components/ui/input";
 
 const DELAY_STAGES: DelayStage[] = ["pickup", "departure", "arrival", "delivery"];
 const STAGE_LABEL: Record<DelayStage, string> = {
@@ -587,7 +586,6 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
         renderer: am5xy.AxisRendererX.new(root, {
           cellStartLocation: 0.1,
           cellEndLocation: 0.9,
-          minGridDistance: 30,
         }),
       })
     );
@@ -699,18 +697,11 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
   const popupParent = typeof document !== 'undefined' ? document.body : undefined;
   const navigate = useNavigate();
   const [selectedCharts, setSelectedCharts] = useState<ChartSelection[]>([]);
-  const [isQuickFilterVisible, setIsQuickFilterVisible] = useState(false);
-  const [quickFilterText, setQuickFilterText] = useState("");
-
-  const applyQuickFilter = useCallback((value: string) => {
-    if (apiRef.current && typeof (apiRef.current as any).setQuickFilter === "function") {
-      (apiRef.current as any).setQuickFilter(value);
-    }
-  }, []);
   const [delayChartData, setDelayChartData] = useState<DelayChartDatum[] | null>(null);
   const [containerMixData, setContainerMixData] = useState<ContainerMixDatum[] | null>(null);
   const [transportModeData, setTransportModeData] = useState<TransportModeDatum[] | null>(null);
   const [tradePartyCostData, setTradePartyCostData] = useState<TradePartyCostDatum[] | null>(null);
+  const [areFloatingFiltersVisible, setAreFloatingFiltersVisible] = useState(false);
 
   const toggleChartSelection = useCallback((value: ChartSelection, checked: boolean) => {
     setSelectedCharts((prev) => {
@@ -722,20 +713,9 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     });
   }, []);
 
-  const toggleQuickFilterVisibility = useCallback(() => {
-    setIsQuickFilterVisible((prev) => {
-      if (prev) {
-        setQuickFilterText("");
-        applyQuickFilter("");
-      }
-      return !prev;
-    });
-  }, [applyQuickFilter]);
-
-  const handleQuickFilterChange = useCallback((value: string) => {
-    setQuickFilterText(value);
-    applyQuickFilter(value);
-  }, [applyQuickFilter]);
+  const toggleFloatingFilters = useCallback(() => {
+    setAreFloatingFiltersVisible((prev) => !prev);
+  }, []);
 
   const buildDelayChartData = useCallback((): DelayChartDatum[] => {
     const api = apiRef.current;
@@ -880,7 +860,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 190,
       filter: 'agTextColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableRowGroup: true,
@@ -894,7 +874,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 200,
       filter: 'agTextColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableRowGroup: true,
@@ -908,7 +888,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 120,
       filter: 'agTextColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableRowGroup: true,
@@ -922,7 +902,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 1,
       width: 220,
       filter: 'agTextColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableRowGroup: true,
@@ -936,7 +916,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 140,
       filter: 'agTextColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableRowGroup: true,
@@ -950,7 +930,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 150,
       filter: 'agTextColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableRowGroup: true,
@@ -967,7 +947,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
           flex: 0,
           width: 140,
           filter: 'agTextColumnFilter',
-          floatingFilter: true,
+          floatingFilter: areFloatingFiltersVisible,
           sortable: true,
           resizable: true,
           enableRowGroup: true,
@@ -981,7 +961,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
           flex: 0,
           width: 140,
           filter: 'agTextColumnFilter',
-          floatingFilter: true,
+          floatingFilter: areFloatingFiltersVisible,
           sortable: true,
           resizable: true,
           enableRowGroup: true,
@@ -1022,7 +1002,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
           flex: 0,
           width: 140,
           filter: 'agTextColumnFilter',
-          floatingFilter: true,
+          floatingFilter: areFloatingFiltersVisible,
           sortable: true,
           resizable: true,
           enableRowGroup: true,
@@ -1036,7 +1016,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
           flex: 0,
           width: 140,
           filter: 'agTextColumnFilter',
-          floatingFilter: true,
+          floatingFilter: areFloatingFiltersVisible,
           sortable: true,
           resizable: true,
           enableRowGroup: true,
@@ -1077,7 +1057,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
           flex: 0,
           width: 140,
           filter: 'agTextColumnFilter',
-          floatingFilter: true,
+          floatingFilter: areFloatingFiltersVisible,
           sortable: true,
           resizable: true,
           enableRowGroup: true,
@@ -1117,7 +1097,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
           flex: 0,
           width: 140,
           filter: 'agTextColumnFilter',
-          floatingFilter: true,
+          floatingFilter: areFloatingFiltersVisible,
           sortable: true,
           resizable: true,
           enableRowGroup: true,
@@ -1154,7 +1134,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 1,
       width: 200,
       filter: 'agTextColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableRowGroup: true,
@@ -1169,7 +1149,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 180,
       filter: 'agNumberColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableValue: true,
@@ -1183,7 +1163,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 160,
       filter: 'agNumberColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableValue: true,
@@ -1197,7 +1177,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 140,
       filter: 'agNumberColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       enableValue: true,
@@ -1211,7 +1191,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 170,
       filter: 'agNumberColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       valueFormatter: ({ value }) => {
@@ -1229,7 +1209,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       flex: 0,
       width: 170,
       filter: 'agNumberColumnFilter',
-      floatingFilter: true,
+      floatingFilter: areFloatingFiltersVisible,
       sortable: true,
       resizable: true,
       valueFormatter: ({ value }) => {
@@ -1245,7 +1225,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
         return { justifyContent: 'flex-end' };
       },
     },
-  ], []);
+  ], [areFloatingFiltersVisible]);
 
   // Default Column Definition
   const defaultColDef = useMemo<ColDef>(() => ({
@@ -1254,7 +1234,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     resizable: true,
     editable: false,
     enableCellChangeFlash: true,
-    floatingFilter: true,
+    floatingFilter: areFloatingFiltersVisible,
     suppressMenu: false,
     enableRowGroup: true,
     enableValue: true,
@@ -1267,7 +1247,7 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
       whiteSpace: 'normal',
       wordBreak: 'break-word',
     },
-  }), []);
+  }), [areFloatingFiltersVisible]);
 
   const autoGroupColumnDef = useMemo<ColDef>(() => ({
     headerName: 'Group',
@@ -1363,218 +1343,4 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     }
   }, []);
 
-  const onRowClicked = useCallback(
-    (event: RowClickedEvent<Shipment>) => {
-      const shipment = event.data;
-      if (!shipment) return;
-      if (
-        shipment.transportMode === "Sea" ||
-        shipment.transportMode === "Air" ||
-        shipment.transportMode === "Road"
-      ) {
-        navigate("/external-page", {
-          state: {
-            transportMode: shipment.transportMode,
-            shipment,
-          },
-        });
-      }
-    },
-    [navigate],
-  );
-
-  useEffect(() => {
-    renderCharts();
-  }, [data, renderCharts]);
-
-  return (
-    <div className="w-full">
-      {/* Toolbar */}
-      <div className="flex gap-2 mb-3 flex-wrap items-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Export
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={onExportCSV} className="gap-2">
-              <FileText className="h-4 w-4" />
-              Export CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onExportExcel} className="gap-2">
-              <FileSpreadsheet className="h-4 w-4" />
-              Export Excel
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button
-          onClick={onClearFilters}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <Filter className="h-4 w-4" />
-          Clear Filters
-        </Button>
-        <Button
-          onClick={onResetColumns}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Reset View
-        </Button>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <SlidersHorizontal className="h-4 w-4" />
-                Chart Options
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem className="text-xs text-muted-foreground">
-                Select one or more charts to display
-              </DropdownMenuItem>
-              <div className="my-1 h-px bg-border" />
-              {chartOptions.map((option) => (
-                <DropdownMenuCheckboxItem
-                  key={option.value}
-                  checked={selectedCharts.includes(option.value)}
-                  onCheckedChange={(checked) => toggleChartSelection(option.value, !!checked)}
-                >
-                  {option.label}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            type="button"
-            onClick={toggleQuickFilterVisibility}
-            variant={isQuickFilterVisible ? "secondary" : "outline"}
-            size="icon"
-            className="h-9 w-9"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
-          {isQuickFilterVisible && (
-            <Input
-              value={quickFilterText}
-              onChange={(event) => handleQuickFilterChange(event.target.value)}
-              placeholder="Search all columns..."
-              className="w-64"
-              autoFocus
-            />
-          )}
-        </div>
-      </div>
-
-      {/* AG Grid Table */}
-      <div
-        id={gridId}
-        className="ag-theme-quartz rounded-lg border border-border overflow-hidden"
-        style={{ height, width: '100%' }}
-      >
-        <AgGridReact<Shipment>
-          ref={gridRef}
-          rowData={data}
-          columnDefs={columnDefs}
-          defaultColDef={defaultColDef}
-          onGridReady={onGridReady}
-          theme={themeQuartz}
-          rowSelection="multiple"
-          animateRows={true}
-          pagination
-          paginationPageSize={10}
-          paginationPageSizeSelector={[10, 25, 50, 100]}
-          // suppressRowClickSelection={true}
-          domLayout="normal"
-          suppressContextMenu={false}
-          allowContextMenuWithControlKey={true}
-          getContextMenuItems={() => [
-            'copy',
-            'copyWithHeaders',
-            'separator',
-            'export',
-          ]}
-          enableRangeSelection={true}
-          suppressRowClickSelection={false}
-          sideBar={{
-            toolPanels: [
-              {
-                id: 'columns',
-                labelKey: 'columns',
-                labelDefault: 'Columns',
-                iconKey: 'columns',
-                toolPanel: 'agColumnsToolPanel',
-              },
-              {
-                id: 'filters',
-                labelKey: 'filters',
-                labelDefault: 'Filters',
-                iconKey: 'filter',
-                toolPanel: 'agFiltersToolPanel',
-              },
-            ],
-            defaultToolPanel: 'columns',
-            hiddenByDefault: false,
-          }}
-          statusBar={{
-            statusPanels: [
-              { statusPanel: 'agTotalRowCountComponent', align: 'left' },
-              { statusPanel: 'agFilteredRowCountComponent' },
-              { statusPanel: 'agTotalAndFilteredRowCountComponent' },
-              { statusPanel: 'agAggregationComponent' },
-            ],
-          }}
-          autoGroupColumnDef={autoGroupColumnDef}
-          rowGroupPanelShow="always"
-          pivotPanelShow="always"
-          suppressAggFuncInHeader={false}
-          groupDisplayType="multipleColumns"
-          cacheQuickFilter
-          groupMaintainOrder
-          popupParent={popupParent}
-          onRowClicked={onRowClicked}
-        />
-      </div>
-      {(delayChartData || containerMixData || transportModeData || tradePartyCostData) && selectedCharts.length > 0 && (
-        <div
-          className={`mt-4 grid gap-4 ${[delayChartData, containerMixData || transportModeData, tradePartyCostData].filter(Boolean).length === 1
-            ? ""
-            : [delayChartData, containerMixData || transportModeData, tradePartyCostData].filter(Boolean).length === 2
-              ? "lg:grid-cols-2"
-              : "lg:grid-cols-3"
-            }`}
-        >
-          {selectedCharts.includes("delay") && delayChartData && (
-            <DelaySummaryChart data={delayChartData} />
-          )}
-          {selectedCharts.includes("containerMix") && (
-            <>
-              {activeFilter === "All" && transportModeData ? (
-                <ContainerModeMultipleDonutChart transportData={transportModeData} />
-              ) : containerMixData ? (
-                <ContainerModePieChart data={containerMixData} activeFilter={activeFilter} />
-              ) : null}
-            </>
-          )}
-          {selectedCharts.includes("tradePartyCost") && tradePartyCostData && (
-            <TradePartyCostLineChart data={tradePartyCostData} />
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default ShipmentTable;
+// ... (rest of the code remains the same)

@@ -4,6 +4,7 @@
 .ag-theme-quartz {
   --ag-background-color: hsl(var(--card));
   --ag-foreground-color: hsl(var(--foreground));
+
   /* White header background to match table mockup */
   --ag-header-background-color: hsl(var(--card));
   --ag-header-foreground-color: hsl(var(--foreground));
@@ -14,9 +15,10 @@
   --ag-range-selection-border-color: hsl(var(--primary));
   --ag-input-focus-border-color: hsl(var(--ring));
   --ag-font-family: inherit;
-  --ag-font-size: 13px;
+  --ag-font-size: 12px;
+
   /* Row & header sizing / spacing */
-  --ag-row-height: 52px;
+  --ag-row-height: 55px;
   --ag-header-height: 52px;
   --ag-cell-horizontal-padding: 16px;
   --ag-cell-vertical-padding: 14px;
@@ -50,10 +52,15 @@
 
 /* Custom header styles */
 .ag-theme-quartz .ag-header-cell-label {
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.5px;
+}
+
+/* Adjust column header resize handle position */
+.ag-theme-quartz .ag-header-cell-resize {
+  right: -5px !important;
 }
 
 /* Header bottom border to separate header from rows */
@@ -95,6 +102,8 @@
   background-color: hsl(var(--card));
   color: hsl(var(--foreground));
 }
+
+/* Floating filter row uses AG Grid defaults; visibility is controlled via columnDefs (floatingFilter). */
 
 /* Side panel styles */
 .ag-theme-quartz .ag-side-panel {
