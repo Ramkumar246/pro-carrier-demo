@@ -255,16 +255,14 @@ const FreightWeightChart = ({ showFullRange = false }: FreightWeightChartProps) 
     chart.set(
       "cursor",
       am5xy.XYCursor.new(root, {
-        lineY: am5.Line.new(root, {
-          strokeOpacity: 0,
-        }),
+        behavior: "none",
       })
     );
 
     const legend = chart.children.push(
       am5.Legend.new(root, {
         centerX: am5.p100,
-        x: am5.percent(95),
+        x: am5.percent(115),
         marginTop: 10,
         marginBottom: 0,
         layout: root.horizontalLayout,
