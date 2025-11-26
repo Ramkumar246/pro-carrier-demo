@@ -1,73 +1,95 @@
-# Welcome to your Lovable project
+# Pro Carrier Dashboard
 
-## Project info
+## Overview
 
-**URL**: https://lovable.dev/projects/5698edf5-8807-46a6-aa15-460e526f4aca
+This project is a front-end shipment analytics dashboard. It allows users to:
 
-## How can I edit this code?
+- Explore individual shipments in a powerful data grid
+- Understand delays at each stage of the journey
+- Analyze container mix and transport modes
+- Track freight spend and carbon emissions via charts
 
-There are several ways of editing your application.
+The app is built as a single-page React application on top of Vite.
 
-**Use Lovable**
+## Getting started (local development)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/5698edf5-8807-46a6-aa15-460e526f4aca) and start prompting.
+You can run and edit the project locally using any IDE (VS Code, WebStorm, etc.).
 
-Changes made via Lovable will be committed automatically to this repo.
+**Prerequisites**
 
-**Use your preferred IDE**
+- Node.js (LTS recommended)
+- npm (bundled with Node) or another package manager such as pnpm or yarn
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If needed, you can install Node using [nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+**Clone and run**
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# 1. Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# 2. Navigate to the project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+By default, Vite will print the local URL in the terminal (commonly http://localhost:5173).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Recommended npm scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` – start the development server with hot reload
+- `npm run build` – create an optimized production build in the `dist` folder
+- `npm run preview` – preview the production build locally
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
+## Technology stack
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Vite** – fast dev server and build tooling
+- **TypeScript** – typed React components and utilities
+- **React** – application UI framework
+- **shadcn-ui** – composable UI primitives
+- **Tailwind CSS** – utility-first styling
+- **AG Grid** – data grid for the shipment table
 
-## How can I deploy this project?
+## Project structure (high level)
 
-Simply open [Lovable](https://lovable.dev/projects/5698edf5-8807-46a6-aa15-460e526f4aca) and click on Share -> Publish.
+Some key parts of the codebase:
 
-## Can I connect a custom domain to my Lovable project?
+- `src/pages/Index.tsx` – main dashboard page and top-of-page KPI charts
+- `src/components/Layout.tsx` – shared layout wrapper (sidebar, top bar, content area)
+- `src/components/ShipmentTable.tsx` – shipment data grid and grid-driven analytics
+- `src/components/charts/` – reusable chart components (emissions, volumes, spend, mode mix)
+- `src/styles/` – global styles and AG Grid customizations
+- `src/data/` – sample shipment data used for the demo
 
-Yes, you can!
+## Deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+This is a standard Vite + React application and can be deployed to any static hosting platform, for example:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Netlify
+- Vercel
+- GitHub Pages
+- Cloudflare Pages
+
+Typical deployment flow:
+
+1. Run `npm run build` to generate the production build in the `dist` directory.
+2. Configure your hosting provider to use `npm run build` as the build command.
+3. Set the publish/output directory to `dist`.
+4. Deploy and point your domain at the chosen hosting provider.
+
+## Contributing / customizing
+
+- Adjust dashboard cards and charts in `src/pages/Index.tsx`.
+- Modify grid columns, alignment, and analytics in `src/components/ShipmentTable.tsx`.
+- Update theme and component styles via Tailwind config and `src/styles/`.
+
+## License
+
+This project is intended for internal/demo use unless a specific license is added to this repository.
