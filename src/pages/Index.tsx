@@ -138,9 +138,6 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
                 <CollapsibleContent>
                   <div className="px-6 pb-6 pt-0">
                     <ShipmentTable data={inTransitShipments} gridId="in-transit-grid" activeFilter={activeFilter} />
-                    <div className="mt-3 text-right text-xs text-muted-foreground">
-                      Showing 1 to {inTransitShipments.length} of {inTransitShipments.length} shipments
-                    </div>
                   </div>
                 </CollapsibleContent>
               </div>
@@ -175,9 +172,6 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
                 <CollapsibleContent>
                   <div className="px-6 pb-6 pt-0">
                     <ShipmentTable data={pendingShipments} gridId="pending-grid" height={420} activeFilter={activeFilter} />
-                    <div className="mt-3 text-right text-xs text-muted-foreground">
-                      Showing 1 to {pendingShipments.length} of {pendingShipments.length} shipments
-                    </div>
                   </div>
                 </CollapsibleContent>
               </div>
@@ -212,9 +206,6 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
                 <CollapsibleContent>
                   <div className="px-6 pb-6 pt-0">
                     <ShipmentTable data={completedShipments} gridId="completed-grid" height={480} activeFilter={activeFilter} />
-                    <div className="mt-3 text-right text-xs text-muted-foreground">
-                      Showing 1 to {completedShipments.length} of {completedShipments.length} shipments
-                    </div>
                   </div>
                 </CollapsibleContent>
               </div>

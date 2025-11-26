@@ -498,8 +498,8 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
       centerX: 0,
       centerY: 0,
       fill: am5.color("#ffffff"),
-      fontSize: 11,
-      fontWeight: "500",
+      fontSize: 12,
+      fontWeight: "600",
     });
 
     const tooltip = am5.Tooltip.new(root, {
@@ -1343,4 +1343,190 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
     }
   }, []);
 
-// ... (rest of the code remains the same)
+  const onRowClicked = useCallback(
+    (event: RowClickedEvent<Shipment>) => {
+      const shipment = event.data;
+      if (!shipment) return;
+      if (
+        shipment.transportMode === "Sea" ||
+        shipment.transportMode === "Air" ||
+        shipment.transportMode === "Road"
+      ) {
+        navigate("/external-page", {
+          state: {
+            transportMode: shipment.transportMode,
+            shipment,
+          },
+        });
+      }
+    },
+    [navigate],
+  );
+
+  useEffect(() => {
+    renderCharts();
+  }, [data, renderCharts]);
+
+  return (
+    <div className="w-full">
+      {/* AG Grid Table with integrated toolbar */}
+      <div
+        id={gridId}
+        className="relative ag-theme-quartz rounded-lg overflow-hidden"
+        style={{ width: '100%' }}
+      >
+        {/* Toolbar aligned with row group panel (top-right) */}
+        <div className="pointer-events-none absolute right-3 top-2 z-[1] flex flex-wrap items-center gap-2">
+          <div className="pointer-events-auto flex flex-wrap items-center gap-2">
+            {/* Kebab menu with chart options, export, and view actions */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem
+                  className="text-xs text-muted-foreground"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  Chart Options
+                </DropdownMenuItem>
+                <div className="my-1 h-px bg-border" />
+                {chartOptions.map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option.value}
+                    checked={selectedCharts.includes(option.value)}
+                    onCheckedChange={(checked) =>
+                      toggleChartSelection(option.value, !!checked)
+                    }
+                  >
+                    {option.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                <div className="my-1 h-px bg-border" />
+                <DropdownMenuItem onClick={onExportCSV} className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Export CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onExportExcel} className="gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Export Excel
+                </DropdownMenuItem>
+                <div className="my-1 h-px bg-border" />
+                <DropdownMenuItem onClick={onClearFilters} className="gap-2">
+                  <Filter className="h-4 w-4" />
+                  Clear Filters
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onResetColumns} className="gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  Reset View
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Search (floating filters toggle) */}
+            <Button
+              type="button"
+              onClick={toggleFloatingFilters}
+              variant={areFloatingFiltersVisible ? "secondary" : "outline"}
+              size="icon"
+              className="h-9 w-9"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <AgGridReact<Shipment>
+          ref={gridRef}
+          rowData={data}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          onGridReady={onGridReady}
+          theme={themeQuartz}
+          rowSelection="multiple"
+          animateRows={true}
+          // suppressRowClickSelection={true}
+          domLayout="autoHeight"
+          suppressContextMenu={false}
+          allowContextMenuWithControlKey={true}
+          getContextMenuItems={() => [
+            'copy',
+            'copyWithHeaders',
+            'separator',
+            'export',
+          ]}
+          enableRangeSelection={true}
+          suppressRowClickSelection={false}
+          sideBar={{
+            toolPanels: [
+              {
+                id: 'columns',
+                labelKey: 'columns',
+                labelDefault: 'Columns',
+                iconKey: 'columns',
+                toolPanel: 'agColumnsToolPanel',
+              },
+              {
+                id: 'filters',
+                labelKey: 'filters',
+                labelDefault: 'Filters',
+                iconKey: 'filter',
+                toolPanel: 'agFiltersToolPanel',
+              },
+            ],
+            defaultToolPanel: 'columns',
+            hiddenByDefault: true,
+          }}
+          autoGroupColumnDef={autoGroupColumnDef}
+          rowGroupPanelShow="always"
+          pivotPanelShow="always"
+          suppressAggFuncInHeader={false}
+          groupDisplayType="multipleColumns"
+          cacheQuickFilter
+          groupMaintainOrder
+          popupParent={popupParent}
+          onRowClicked={onRowClicked}
+        />
+      </div>
+
+      {(delayChartData || containerMixData || transportModeData || tradePartyCostData) &&
+        selectedCharts.length > 0 && (
+          <div
+            className={`mt-4 grid gap-4 ${
+              [delayChartData, containerMixData || transportModeData, tradePartyCostData]
+                .filter(Boolean).length === 1
+                ? ""
+                : [delayChartData, containerMixData || transportModeData, tradePartyCostData]
+                    .filter(Boolean).length === 2
+                ? "lg:grid-cols-2"
+                : "lg:grid-cols-3"
+            }`}
+          >
+            {selectedCharts.includes("delay") && delayChartData && (
+              <DelaySummaryChart data={delayChartData} />
+            )}
+            {selectedCharts.includes("containerMix") && (
+              <>
+                {activeFilter === "All" && transportModeData ? (
+                  <ContainerModeMultipleDonutChart transportData={transportModeData} />
+                ) : containerMixData ? (
+                  <ContainerModePieChart data={containerMixData} activeFilter={activeFilter} />
+                ) : null}
+              </>
+            )}
+            {selectedCharts.includes("tradePartyCost") && tradePartyCostData && (
+              <TradePartyCostLineChart data={tradePartyCostData} />
+            )}
+          </div>
+        )}
+    </div>
+  );
+};
+
+export default ShipmentTable;
