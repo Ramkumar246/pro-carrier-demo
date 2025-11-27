@@ -218,8 +218,14 @@ const ShipmentDistributionChart = ({ crossFilterMode, onCrossFilterChange }: Shi
       forceHidden: true,
     });
     legend.labels.template.setAll({
-      fontSize: 12,
+      fontSize: 11,
       fill: am5.color(foregroundColor),
+      maxWidth: 50,
+      oversizedBehavior: "truncate",
+    });
+    legend.markers.template.setAll({
+      width: 10,
+      height: 10,
     });
 
     // Enhanced animations

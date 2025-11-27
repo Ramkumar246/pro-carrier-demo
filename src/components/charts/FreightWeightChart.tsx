@@ -324,8 +324,8 @@ const FreightWeightChart = ({ showFullRange = false, crossFilterMode, onCrossFil
 
     const legend = chart.children.push(
       am5.Legend.new(root, {
-        centerX: am5.p100,
-        x: am5.percent(115),
+        centerX: am5.p50,
+        x: am5.p50,
         marginTop: 10,
         marginBottom: 0,
         layout: root.horizontalLayout,
@@ -333,8 +333,19 @@ const FreightWeightChart = ({ showFullRange = false, crossFilterMode, onCrossFil
     );
     legend.data.setAll(chart.series.values);
     legend.labels.template.setAll({
-      fontSize: 12,
+      fontSize: 11,
       fill: am5.color(foregroundColor),
+      maxWidth: 50,
+      oversizedBehavior: "truncate",
+      marginLeft: 2,
+    });
+    legend.markers.template.setAll({
+      width: 10,
+      height: 10,
+    });
+    legend.itemContainers.template.setAll({
+      marginLeft: 5,
+      marginRight: 5,
     });
 
     // Force update of corner radius when legend is toggled

@@ -59,8 +59,8 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
           {/* Charts Grid */}
           {!isLayoutExpanded ? (
             // Default mode: 4 charts (2x2) and map split 50/50
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 transition-all duration-500 ease-in-out">
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 xl:grid-cols-2 transition-all duration-500 ease-in-out">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 <DashboardCard title="Carbon Emissions">
                   <CarbonEmissionsChart crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
@@ -86,8 +86,8 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
             </div>
           ) : (
             // Expanded mode: All 4 charts first, then map
-            <div className="space-y-6 transition-all duration-500 ease-in-out">
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-4 transition-all duration-500 ease-in-out">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                 <DashboardCard title="Carbon Emissions">
                   <CarbonEmissionsChart crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
