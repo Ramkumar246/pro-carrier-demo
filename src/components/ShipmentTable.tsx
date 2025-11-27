@@ -33,10 +33,10 @@ const STAGE_LABEL: Record<DelayStage, string> = {
   delivery: "Delivery Delay",
 };
 const STAGE_COLOR: Record<DelayStage, string> = {
-  pickup: "#2b2a7a", // deep indigo
-  departure: "#2f82c9", // cobalt blue
-  arrival: "#39c7c4", // teal
-  delivery: "#f85a9d", // vibrant pink
+  pickup: "#212063", // dark blue
+  departure: "#4DD3C9", // teal
+  arrival: "#FF2C7D", // pink
+  delivery: "#3a3a9e", // lighter blue (variation)
 };
 
 type DelayChartDatum = {
@@ -82,12 +82,12 @@ const chartOptions: { value: ChartSelection; label: string }[] = [
 
 // Brand colors for container modes
 const CONTAINER_MODE_COLORS: Record<string, string> = {
-  FCL: "#2b2a7a", // deep indigo (from delay chart)
-  LCL: "#2f82c9", // cobalt blue (from delay chart)
-  ROR: "#39c7c4", // teal (from delay chart)
-  LSE: "#f85a9d", // vibrant pink (from delay chart)
-  LTL: "#4b39ef", // purple
-  FTL: "#10b981", // green
+  FCL: "#212063", // dark blue
+  LCL: "#4DD3C9", // teal
+  ROR: "#FF2C7D", // pink
+  LSE: "#3a3a9e", // lighter blue (variation)
+  LTL: "#7BE8E0", // lighter teal (variation)
+  FTL: "#FF6FA3", // lighter pink (variation)
 };
 
 // Transport mode colors for inner donut
@@ -226,6 +226,7 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
       textType: "circular",
       fontSize: 11,
       fill: am5.color(foregroundColor),
+      text: "{valuePercentTotal.formatNumber('0.0')}%",
     });
 
     series.data.setAll(data);
@@ -244,6 +245,7 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
       fontSize: 12,
       fill: am5.color(foregroundColor),
     });
+    legend.valueLabels.template.set("forceHidden", true);
 
     series.appear(1000);
     chart.appear(1000, 100);
@@ -330,6 +332,8 @@ const ContainerModePieChart = ({ data, activeFilter }: { data: ContainerMixDatum
       textType: "circular",
       centerX: 0,
       centerY: 0,
+      fill: am5.color(foregroundColor),
+      text: "{valuePercentTotal.formatNumber('0.0')}%",
     });
 
     const tooltip = am5.Tooltip.new(root, {
@@ -355,6 +359,7 @@ const ContainerModePieChart = ({ data, activeFilter }: { data: ContainerMixDatum
       })
     );
     legend.data.setAll(series.dataItems);
+    legend.valueLabels.template.set("forceHidden", true);
 
     series.appear(1000, 100);
     chart.appear(1000, 100);
@@ -476,6 +481,7 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
       centerY: 0,
       fill: am5.color(foregroundColor),
       fontSize: 11,
+      text: "{valuePercentTotal.formatNumber('0.0')}%",
     });
 
     // Add ticks connecting labels to slices
@@ -513,6 +519,7 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
       fontSize: 12,
       fill: am5.color(foregroundColor),
     });
+    legend.valueLabels.template.set("forceHidden", true);
 
     series.appear(1000, 100);
     chart.appear(1000, 100);
