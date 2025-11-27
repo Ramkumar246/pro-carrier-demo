@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, TrendingUp, Settings, LogOut, Ship } from "lucide-react";
+import { LayoutDashboard, Package, Ship } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -6,8 +6,7 @@ const Sidebar = () => {
   const location = useLocation();
   
   const navItems = [
-    { icon: LayoutDashboard, path: "/", label: "Dashboard" },
-    { icon: Package, path: "/shipments", label: "Shipments" },
+    { icon: LayoutDashboard, path: "/shipments", label: "Dashboard" },
     { icon: Ship, path: "/external-page", label: "Vessel Finder" },
   ];
 
@@ -15,7 +14,7 @@ const Sidebar = () => {
     <div className="w-16 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-6 fixed left-0 top-0 bottom-0 z-50">
       {/* Logo */}
       <div className="mb-8">
-        <NavLink to="/" className="block">
+        <NavLink to="/shipments" className="block">
           <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
             <Package className="w-6 h-6 text-white" />
           </div>
@@ -44,15 +43,6 @@ const Sidebar = () => {
         })}
       </nav>
 
-      {/* Bottom Actions */}
-      <div className="flex flex-col gap-4">
-        <button className="w-10 h-10 rounded-lg flex items-center justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-200">
-          <Settings className="w-5 h-5" />
-        </button>
-        <button className="w-10 h-10 rounded-lg flex items-center justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-200">
-          <LogOut className="w-5 h-5" />
-        </button>
-      </div>
     </div>
   );
 };
