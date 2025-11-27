@@ -336,7 +336,7 @@ const ShipmentVolumesChart = ({ showFullRange = false, crossFilterMode, onCrossF
       am5.Legend.new(root, {
         centerX: am5.p50,
         x: am5.p50,
-        marginTop: 10,
+        marginTop: 5,
         marginBottom: 0,
         layout: root.horizontalLayout,
       })
@@ -345,18 +345,13 @@ const ShipmentVolumesChart = ({ showFullRange = false, crossFilterMode, onCrossF
     legend.labels.template.setAll({
       fontSize: 11,
       fill: am5.color(foregroundColor),
-      maxWidth: 50,
-      oversizedBehavior: "truncate",
-      marginLeft: 2,
+      paddingLeft: 3,
     });
     legend.markers.template.setAll({
       width: 10,
       height: 10,
     });
-    legend.itemContainers.template.setAll({
-      marginLeft: 5,
-      marginRight: 5,
-    });
+    legend.valueLabels.template.set("forceHidden", true);
 
     // Force update of corner radius when legend is toggled
     legend.itemContainers.template.events.on("click", () => {

@@ -201,31 +201,25 @@ const CarbonEmissionsChart = ({ crossFilterMode, onCrossFilterChange }: CarbonEm
     cursor.lineX.setAll({ strokeOpacity: 0.1 });
     cursor.lineY.setAll({ strokeOpacity: 0.1 });
 
-    // Add legend with responsive layout
+    // Add legend with responsive layout - centered with no gaps
     const legend = chart.children.push(
       am5.Legend.new(root, {
         centerX: am5.p50,
         x: am5.p50,
-        centerY: am5.p50,
         layout: root.horizontalLayout,
-        marginTop: 5,
-        paddingTop: 5,
+        marginTop: 0,
+        paddingTop: 0,
       })
     );
     legend.labels.template.setAll({
       fontSize: 11,
-      maxWidth: 60,
-      oversizedBehavior: "truncate",
-      marginLeft: 2,
+      paddingLeft: 3,
     });
     legend.markers.template.setAll({
       width: 10,
       height: 10,
     });
-    legend.itemContainers.template.setAll({
-      marginLeft: 5,
-      marginRight: 5,
-    });
+    legend.valueLabels.template.set("forceHidden", true);
     legend.data.setAll(chart.series.values);
 
     // Enhanced animations with staggered timing
