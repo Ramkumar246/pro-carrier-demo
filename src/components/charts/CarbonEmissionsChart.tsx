@@ -207,7 +207,7 @@ const CarbonEmissionsChart = ({ crossFilterMode, onCrossFilterChange }: CarbonEm
         centerX: am5.p50,
         x: am5.p50,
         layout: root.horizontalLayout,
-        marginTop: 0,
+        marginTop: 15,
         paddingTop: 0,
       })
     );

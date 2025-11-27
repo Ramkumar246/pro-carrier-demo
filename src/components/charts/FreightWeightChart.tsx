@@ -326,7 +326,7 @@ const FreightWeightChart = ({ showFullRange = false, crossFilterMode, onCrossFil
       am5.Legend.new(root, {
         centerX: am5.p50,
         x: am5.p50,
-        marginTop: 5,
+        marginTop: 15,
         marginBottom: 0,
         layout: root.horizontalLayout,
       })
