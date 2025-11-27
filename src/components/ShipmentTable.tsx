@@ -271,7 +271,7 @@ const DelaySummaryChart = ({ data }: { data: DelayChartDatum[] }) => {
           Calculates the average number of late days across all visible shipments for each milestone.
         </p>
       </div>
-      <div className="h-[320px] w-full">
+      <div className="h-[220px] w-full">
         <div id={chartIdRef.current} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
@@ -385,7 +385,7 @@ const ContainerModePieChart = ({ data, activeFilter }: { data: ContainerMixDatum
           Shows the distribution of shipment container modes for the current selection.
         </p>
       </div>
-      <div className="h-[340px] w-full pt-4">
+      <div className="h-[220px] w-full pt-4">
         <div id={chartIdRef.current} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
@@ -545,7 +545,7 @@ const ContainerModeMultipleDonutChart = ({ transportData }: { transportData: Tra
           Variable radius pie chart showing container modes (FCL, LCL, ROR, LSE). Slice radius varies based on shipment count.
         </p>
       </div>
-      <div className="h-[400px] w-full pt-4">
+      <div className="h-[220px] w-full pt-4">
         <div id={chartIdRef.current} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
@@ -685,7 +685,7 @@ const TradePartyCostLineChart = ({ data }: { data: TradePartyCostDatum[] }) => {
           Shows total cost (USD) by trade party. Each point represents a trade party's total cost.
         </p>
       </div>
-      <div className="h-[400px] w-full pt-4">
+      <div className="h-[220px] w-full pt-4">
         <div id={chartIdRef.current} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
