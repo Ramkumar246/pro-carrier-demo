@@ -1459,6 +1459,8 @@ const ShipmentTable = ({ data, gridId, height = 860, activeFilter }: ShipmentTab
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           onGridReady={onGridReady}
+          onFilterChanged={renderCharts}
+          onSortChanged={renderCharts}
           theme={themeQuartz}
           rowSelection="multiple"
           animateRows={true}
