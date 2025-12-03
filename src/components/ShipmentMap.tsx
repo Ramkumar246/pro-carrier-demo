@@ -828,7 +828,7 @@ const ShipmentMap = () => {
   };
 
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative overflow-hidden" data-tour-id="tour-map">
       <div ref={mapContainer} className="w-full h-[500px] md:h-[560px] lg:h-[600px] xl:h-[700px]" />
 
       {selectedVessel && (

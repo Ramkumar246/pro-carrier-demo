@@ -49,7 +49,7 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
   return (
     <div className="space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between" data-tour-id="tour-header">
             <div className="flex items-center gap-3">
               <Ship className="w-6 h-6 text-primary" />
               <h1 className="text-2xl font-bold text-foreground">Shipments</h1>
@@ -57,10 +57,11 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
           </div>
 
           {/* Charts Grid */}
+          <div data-tour-id="tour-charts">
           {!isLayoutExpanded ? (
             // Default mode: 4 charts (2x2) and map split 50/50
             <div className="grid gap-4 grid-cols-1 xl:grid-cols-2 transition-all duration-500 ease-in-out">
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2" data-tour-id="tour-charts-grid">
                 <DashboardCard title="Carbon Emissions">
                   <CarbonEmissionsChart crossFilterMode={crossFilterMode} onCrossFilterChange={handleCrossFilterChange} />
                 </DashboardCard>
@@ -78,7 +79,7 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
                 </DashboardCard>
               </div>
               
-              <div>
+              <div data-tour-id="tour-map">
                 <DashboardCard title="Live Shipment Tracking">
                   <ShipmentMap />
                 </DashboardCard>
@@ -110,6 +111,7 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
               </DashboardCard>
             </div>
           )}
+          </div>
 
           {/* Filter Buttons */}
           <div className="pt-4">
@@ -120,7 +122,7 @@ const Index = ({ isLayoutExpanded = false }: IndexProps) => {
           <div className="space-y-4 pt-2">
             {/* In-Transit Shipments */}
             <Collapsible open={inTransitOpen} onOpenChange={setInTransitOpen}>
-              <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+              <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden" data-tour-id="tour-tables">
                 <CollapsibleTrigger className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/40 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
