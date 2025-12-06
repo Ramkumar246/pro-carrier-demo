@@ -1238,8 +1238,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
     if (!map.current) return;
     return;
     
-    console.log(`🚀 Focusing on ${routeType || 'navigation'} route segment only`);
-    console.log('📏 Route has', route.geometry.coordinates.length, 'coordinates');
     
     // Keep vessel tracking routes visible but dimmed, keep pickup/delivery routes highlighted
     vessels.forEach((vessel) => {
@@ -1253,7 +1251,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
               const layer = map.current.getLayer(layerId);
               if (layer && layer.type === 'line') {
                 map.current.setPaintProperty(layerId, 'line-opacity', 0.9);
-                console.log('🔆 Highlighting vessel tracking:', layerId, 'at 90%');
               }
             }
             if (suffix.includes('points')) {
@@ -1261,35 +1258,29 @@ const VesselMap: React.FC<VesselMapProps> = ({
               const layer = map.current.getLayer(layerId);
               if (layer && layer.type === 'circle') {
                 map.current.setPaintProperty(layerId, 'circle-opacity', 0.85);
-                console.log('🔆 Highlighting vessel points:', layerId, 'at 85%');
               }
             }
           } catch (error) {
-            console.log('⚠️ Could not set paint property for layer:', layerId, error);
           }
         }
       });
       
       // Show only the relevant pickup or delivery route with enhanced styling
       if (routeType && (routeType.includes('Pickup') || routeType.includes('pickup') || routeType.includes('Origin'))) {
-        console.log('📦 Showing pickup navigation route for vessel:', vessel.id);
         // Ensure pickup route and glow are visible
         const pickupLayerId = `pickup-nav-${vessel.id}`;
         const pickupGlowId = `pickup-nav-glow-${vessel.id}`;
         if (map.current?.getLayer(pickupGlowId)) {
-          console.log('✅ Making pickup glow visible and bright');
           map.current.setLayoutProperty(pickupGlowId, 'visibility', 'visible');
           map.current.setPaintProperty(pickupGlowId, 'line-opacity', 0.6);
         }
         if (map.current?.getLayer(pickupLayerId)) {
-          console.log('✅ Making pickup route visible and highlighted');
           map.current.setLayoutProperty(pickupLayerId, 'visibility', 'visible');
           map.current.setPaintProperty(pickupLayerId, 'line-opacity', 1.0);
           map.current.setPaintProperty(pickupLayerId, 'line-width', 8);
           // Bring to front
           map.current.moveLayer(pickupLayerId);
         } else {
-          console.log('⚠️ Pickup layer not found:', pickupLayerId);
         }
         // Keep delivery route visible but dimmed
         const deliveryLayerId = `delivery-nav-${vessel.id}`;
@@ -1303,24 +1294,20 @@ const VesselMap: React.FC<VesselMapProps> = ({
           map.current.setPaintProperty(deliveryGlowId, 'line-opacity', 0.1);
         }
       } else if (routeType && (routeType.includes('Delivery') || routeType.includes('delivery') || routeType.includes('Destination'))) {
-        console.log('🚚 Showing delivery navigation route for vessel:', vessel.id);
         // Ensure delivery route and glow are visible
         const deliveryLayerId = `delivery-nav-${vessel.id}`;
         const deliveryGlowId = `delivery-nav-glow-${vessel.id}`;
         if (map.current?.getLayer(deliveryGlowId)) {
-          console.log('✅ Making delivery glow visible and bright');
           map.current.setLayoutProperty(deliveryGlowId, 'visibility', 'visible');
           map.current.setPaintProperty(deliveryGlowId, 'line-opacity', 0.6);
         }
         if (map.current?.getLayer(deliveryLayerId)) {
-          console.log('✅ Making delivery route visible and highlighted');
           map.current.setLayoutProperty(deliveryLayerId, 'visibility', 'visible');
           map.current.setPaintProperty(deliveryLayerId, 'line-opacity', 1.0);
           map.current.setPaintProperty(deliveryLayerId, 'line-width', 8);
           // Bring to front
           map.current.moveLayer(deliveryLayerId);
         } else {
-          console.log('⚠️ Delivery layer not found:', deliveryLayerId);
         }
         // Keep pickup route visible but dimmed
         const pickupLayerId = `pickup-nav-${vessel.id}`;
@@ -1334,7 +1321,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
           map.current.setPaintProperty(pickupGlowId, 'line-opacity', 0.1);
         }
       } else {
-        console.log('⚠️ No route type specified or unrecognized:', routeType);
         // If no specific route type, ensure both pickup and delivery routes are visible
         const pickupLayerId = `pickup-nav-${vessel.id}`;
         const pickupGlowId = `pickup-nav-glow-${vessel.id}`;
@@ -1380,7 +1366,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
       
       // Skip creating navigation route layers since we're using pickup/delivery routes
       // The pickup/delivery routes are already styled and visible
-      console.log('📍 Navigation route setup skipped - using pickup/delivery routes');
 
       // Focus on the route and transition to 3D
       const bounds = new mapboxgl.LngLatBounds();
@@ -1390,7 +1375,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
 
       // First fit the bounds to focus on the route with smooth animation
       if (!bounds.isEmpty()) {
-        console.log('📍 Zooming into route with smooth animation');
         
         // Start with a zoom out to show context
         map.current.flyTo({
@@ -1423,7 +1407,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
       // Then transition to 3D view with a smooth animation
       setTimeout(() => {
         if (!map.current) return;
-        console.log('🎯 Transitioning to 3D view with dynamic lighting');
         
         // Apply time-of-day lighting presets
         const applyLightingPreset = (preset?: 'dawn' | 'day' | 'dusk' | 'night' | null) => {
@@ -1509,7 +1492,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
           map.current.setFog(settings.fog as any);
           map.current.setLight(settings.light as any);
           
-          console.log(`🌅 Applied ${selectedPreset} lighting preset`);
         };
         
         // Apply auto-detected lighting
@@ -1523,7 +1505,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
             duration: 1500,
             easing: (t) => t * (2 - t), // Smooth easing function
           });
-          console.log('📐 3D transition initiated with pitch: 60°');
         }
       }, 2200);  // Wait for zoom animation to complete
 
@@ -1531,7 +1512,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
       setTimeout(() => {
         if (!map.current) return;
         
-        console.log('🏔️ Adding 3D terrain and buildings');
         
         // Remove existing terrain first if present
         if (map.current.getTerrain()) {
@@ -1546,7 +1526,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
             tileSize: 512,
             maxzoom: 14,
           });
-          console.log('✅ Terrain source added');
         }
         
         // Set or update terrain with exaggeration for dramatic effect
@@ -1557,7 +1536,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
         
         // Add 3D buildings layer
         add3DBuildingsLayer();
-        console.log('🏢 3D features fully enabled');
       }, 1200);
     };
 
@@ -1594,7 +1572,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
   const switchToDefaultView = useCallback(() => {
     if (!map.current) return;
     
-    console.log('🗺️ Returning to 2D Default View');
     
     // Remove navigation route layers
     if (map.current.getLayer('navigation-route')) {
@@ -1715,19 +1692,14 @@ const VesselMap: React.FC<VesselMapProps> = ({
 
   const handleAddressNavigationToggle = useCallback(
     async (type: AddressNavType) => {
-      console.log('🚀 handleAddressNavigationToggle called with type:', type);
-      console.log('🔍 mapboxToken exists:', !!mapboxToken);
       
       if (!mapboxToken) {
-        console.log('❌ No mapboxToken, returning early');
         return;
       }
 
       const isPickup = type === 'pickup';
       const address = isPickup ? parsedAddresses.pickup : parsedAddresses.delivery;
-      console.log('📍 Address found:', !!address, address);
       if (!address) {
-        console.log('❌ No address found, returning early');
         return;
       }
 
@@ -1783,8 +1755,6 @@ const VesselMap: React.FC<VesselMapProps> = ({
       }
 
       if (currentRoute) {
-        console.log('✅ Route fetched successfully:', currentRoute);
-        console.log('📊 Route coordinates count:', currentRoute.geometry.coordinates.length);
         
         const nextState = {
           ...activeNavigation,
